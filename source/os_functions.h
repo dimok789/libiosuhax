@@ -1,8 +1,6 @@
 #ifndef __OS_FUNCTIONS_H_
 #define __OS_FUNCTIONS_H_
 
-#include <gctypes.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

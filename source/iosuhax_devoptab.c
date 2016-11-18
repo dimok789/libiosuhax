@@ -26,6 +26,7 @@
 #include <sys/dirent.h>
 #include <string.h>
 #include <malloc.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include "os_functions.h"
@@ -42,11 +43,11 @@ typedef struct _fs_dev_file_state_t {
     fs_dev_private_t *dev;
     int fd;                                     /* File descriptor */
     int flags;                                  /* Opening flags */
-    bool read;                                  /* True if allowed to read from file */
-    bool write;                                 /* True if allowed to write to file */
-    bool append;                                /* True if allowed to append to file */
-    u64 pos;                                    /* Current position within the file (in bytes) */
-    u64 len;                                    /* Total length of the file (in bytes) */
+    int read;                                   /* True if allowed to read from file */
+    int write;                                  /* True if allowed to write to file */
+    int append;                                 /* True if allowed to append to file */
+    uint32_t pos;                                    /* Current position within the file (in bytes) */
+    uint32_t len;                                    /* Total length of the file (in bytes) */
     struct _fs_dev_file_state_t *prevOpenFile;  /* The previous entry in a double-linked FILO list of open files */
     struct _fs_dev_file_state_t *nextOpenFile;  /* The next entry in a double-linked FILO list of open files */
 } fs_dev_file_state_t;
@@ -121,18 +122,18 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
     const char *mode_str;
 
     if ((flags & 0x03) == O_RDONLY) {
-        file->read = true;
-        file->write = false;
-        file->append = false;
+        file->read = 1;
+        file->write = 0;
+        file->append = 0;
         mode_str = "r";
     } else if ((flags & 0x03) == O_WRONLY) {
-        file->read = false;
-        file->write = true;
+        file->read = 0;
+        file->write = 1;
         file->append = (flags & O_APPEND);
         mode_str = file->append ? "a" : "w";
     } else if ((flags & 0x03) == O_RDWR) {
-        file->read = true;
-        file->write = true;
+        file->read = 1;
+        file->write = 1;
         file->append = (flags & O_APPEND);
         mode_str = file->append ? "a+" : "r+";
     } else {
@@ -604,9 +605,9 @@ static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs 
         return -1;
     }
 
-    u64 size;
+    uint64_t size;
 
-    int result = IOSUHAX_FSA_GetDeviceInfo(dev->fsaFd, real_path, 0x00, (u32*)&size);
+    int result = IOSUHAX_FSA_GetDeviceInfo(dev->fsaFd, real_path, 0x00, (uint32_t*)&size);
 
     free(real_path);
 

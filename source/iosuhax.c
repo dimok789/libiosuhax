@@ -51,6 +51,7 @@
 #define IOCTL_FSA_CLOSEFILE         0x4D
 #define IOCTL_FSA_SETFILEPOS        0x4E
 #define IOCTL_FSA_GETSTAT           0x4F
+#define IOCTL_FSA_REMOVE            0x50
 #define IOCTL_FSA_REWINDDIR         0x51
 #define IOCTL_FSA_CHDIR             0x52
 
@@ -541,7 +542,7 @@ int IOSUHAX_FSA_WriteFile(int fsaFd, const void* data, u32 size, u32 cnt, int fi
 
     const int input_cnt = 5;
 
-    int io_buf_size = ((sizeof(u32) * input_cnt + 0x40) + 0x3F) & ~0x3F;
+    int io_buf_size = ((sizeof(u32) * input_cnt + size * cnt + 0x40) + 0x3F) & ~0x3F;
 
     u32 *io_buf = (u32*)memalign(0x20, io_buf_size);
     if(!io_buf)
@@ -726,7 +727,7 @@ int IOSUHAX_FSA_Remove(int fsaFd, const char *path)
 
     int result;
 
-    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_GETSTAT, io_buf, io_buf_size, &result, sizeof(result));
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_REMOVE, io_buf, io_buf_size, &result, sizeof(result));
     if(res < 0)
     {
         free(io_buf);

@@ -28,7 +28,7 @@ HDRINSTALL	:=	$(PORTLIBS)/include
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS		=	-O2 -Wall -Wno-unused $(MACHDEP) $(INCLUDE) -DHAVE_CONFIG_H
+CFLAGS		=	-O2 -Wall -Wno-unused $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 ASFLAGS		:=	-g
 

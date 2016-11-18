@@ -585,6 +585,37 @@ static int fs_dev_mkdir_r (struct _reent *r, const char *path, int mode)
     return 0;
 }
 
+static int fs_dev_chmod_r (struct _reent *r, const char *path, int mode)
+{
+    fs_dev_private_t *dev = fs_dev_get_device_data(path);
+    if(!dev) {
+        r->_errno = ENODEV;
+        return -1;
+    }
+
+    OSLockMutex(dev->pMutex);
+
+    char *real_path = fs_dev_real_path(path, dev);
+    if(!real_path) {
+        r->_errno = ENOMEM;
+        OSUnlockMutex(dev->pMutex);
+        return -1;
+    }
+
+    int result = IOSUHAX_FSA_ChangeMode(dev->fsaFd, real_path, mode);
+
+    free(real_path);
+
+    OSUnlockMutex(dev->pMutex);
+
+    if(result < 0) {
+        r->_errno = result;
+        return -1;
+    }
+
+    return 0;
+}
+
 static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs *buf)
 {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
@@ -801,7 +832,7 @@ static const devoptab_t devops_fs = {
     fs_dev_statvfs_r,
     fs_dev_ftruncate_r,
     fs_dev_fsync_r,
-    NULL, /* fs_dev_chmod_r */
+    fs_dev_chmod_r,
     NULL, /* fs_dev_fchmod_r */
     NULL  /* Device data */
 };

@@ -94,6 +94,7 @@ int IOSUHAX_FSA_CloseFile(int fsaFd, int fileHandle);
 int IOSUHAX_FSA_SetFilePos(int fsaFd, int fileHandle, uint32_t position);
 int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, fileStat_s* out_data);
 int IOSUHAX_FSA_Remove(int fsaFd, const char *path);
+int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode);
 
 int IOSUHAX_FSA_RawOpen(int fsaFd, const char* device_path, int* outHandle);
 int IOSUHAX_FSA_RawRead(int fsaFd, void* data, uint32_t block_size, uint32_t block_cnt, uint64_t sector_offset, int device_handle);

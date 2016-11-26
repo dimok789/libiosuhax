@@ -67,7 +67,7 @@ int IOSUHAX_Open(void)
     if(iosuhaxHandle >= 0)
         return iosuhaxHandle;
 
-    iosuhaxHandle = IOS_Open("/dev/iosuhax", 0);
+    iosuhaxHandle = IOS_Open("/dev/mcp", 0);
     return iosuhaxHandle;
 }
 

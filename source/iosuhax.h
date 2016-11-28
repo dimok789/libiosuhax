@@ -62,7 +62,7 @@ typedef struct
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL (1 << 1)
 
-int IOSUHAX_Open(void);
+int IOSUHAX_Open(const char *dev);  // if dev == NULL the default path /dev/iosuhax will be used
 int IOSUHAX_Close(void);
 
 int IOSUHAX_memwrite(uint32_t address, const uint8_t * buffer, uint32_t size); // IOSU external input

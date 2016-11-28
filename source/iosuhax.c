@@ -62,12 +62,12 @@
 
 static int iosuhaxHandle = -1;
 
-int IOSUHAX_Open(void)
+int IOSUHAX_Open(const char *dev)
 {
     if(iosuhaxHandle >= 0)
         return iosuhaxHandle;
 
-    iosuhaxHandle = IOS_Open("/dev/iosuhax", 0);
+    iosuhaxHandle = IOS_Open((char*)(dev ? dev : "/dev/iosuhax"), 0);
     return iosuhaxHandle;
 }
 

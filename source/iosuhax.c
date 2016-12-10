@@ -59,15 +59,16 @@
 #define IOCTL_FSA_RAW_WRITE         0x56
 #define IOCTL_FSA_RAW_CLOSE         0x57
 #define IOCTL_FSA_CHANGEMODE        0x58
+#define IOCTL_FSA_FLUSHVOLUME       0x59
 
 static int iosuhaxHandle = -1;
 
-int IOSUHAX_Open(void)
+int IOSUHAX_Open(const char *dev)
 {
     if(iosuhaxHandle >= 0)
         return iosuhaxHandle;
 
-    iosuhaxHandle = IOS_Open("/dev/mcp", 0);
+    iosuhaxHandle = IOS_Open((char*)(dev ? dev : "/dev/iosuhax"), 0);
     return iosuhaxHandle;
 }
 
@@ -231,6 +232,36 @@ int IOSUHAX_FSA_Unmount(int fsaFd, const char* path, uint32_t flags)
     int result;
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_UNMOUNT, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_FlushVolume(int fsaFd, const char *volume_path)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 2;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(volume_path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    strcpy(((char*)io_buf) + io_buf[1], volume_path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_FLUSHVOLUME, io_buf, io_buf_size, &result, sizeof(result));
     if(res < 0)
     {
         free(io_buf);

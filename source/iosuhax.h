@@ -62,7 +62,7 @@ typedef struct
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL (1 << 1)
 
-int IOSUHAX_Open(void);
+int IOSUHAX_Open(const char *dev);  // if dev == NULL the default path /dev/iosuhax will be used
 int IOSUHAX_Close(void);
 
 int IOSUHAX_memwrite(uint32_t address, const uint8_t * buffer, uint32_t size); // IOSU external input
@@ -76,6 +76,7 @@ int IOSUHAX_FSA_Close(int fsaFd);
 
 int IOSUHAX_FSA_Mount(int fsaFd, const char* device_path, const char* volume_path, uint32_t flags, const char* arg_string, int arg_string_len);
 int IOSUHAX_FSA_Unmount(int fsaFd, const char* path, uint32_t flags);
+int IOSUHAX_FSA_FlushVolume(int fsaFd, const char* volume_path);
 
 int IOSUHAX_FSA_GetDeviceInfo(int fsaFd, const char* device_path, int type, uint32_t* out_data);
 

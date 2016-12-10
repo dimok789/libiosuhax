@@ -16,7 +16,7 @@ include $(DEVKITPPC)/wii_rules
 #---------------------------------------------------------------------------------
 BUILD		:=	build
 SOURCES		:=	source
-INCLUDES	:=	iosuhax.h iosuhax_devoptab.h
+INCLUDES	:=	iosuhax.h iosuhax_devoptab.h iosuhax_disc_interface.h
 LIBTARGET	:=	libiosuhax.a
 
 #---------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ HDRINSTALL	:=	$(PORTLIBS)/include
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-CFLAGS		=	-O2 -Wall -Wno-unused $(MACHDEP) $(INCLUDE)
+CFLAGS		=	-O2 $(DEF_FLAGS) -Wall -Wno-unused $(MACHDEP) $(INCLUDE)
 CXXFLAGS	=	$(CFLAGS)
 ASFLAGS		:=	-g
 
@@ -89,6 +89,10 @@ install: $(LIBTARGET)
 	@[ -d $(HDRINSTALL) ] || mkdir -p $(HDRINSTALL)
 	cp $(foreach incl,$(INCLUDES),$(SOURCES)/$(incl)) $(HDRINSTALL)
 	cp $(LIBTARGET) $(LIBINSTALL)
+
+wut:
+	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile DEF_FLAGS=-D__WUT__
 
 #---------------------------------------------------------------------------------
 else

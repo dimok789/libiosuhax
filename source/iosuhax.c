@@ -26,6 +26,8 @@
 #include "os_functions.h"
 #include "iosuhax.h"
 
+#define IOSUHAX_MAGIC_WORD          0x4E696365
+
 #define IOCTL_MEM_WRITE             0x00
 #define IOCTL_MEM_READ              0x01
 #define IOCTL_SVC                   0x02
@@ -60,6 +62,7 @@
 #define IOCTL_FSA_RAW_CLOSE         0x57
 #define IOCTL_FSA_CHANGEMODE        0x58
 #define IOCTL_FSA_FLUSHVOLUME       0x59
+#define IOCTL_CHECK_IF_IOSUHAX      0x5B
 
 static int iosuhaxHandle = -1;
 
@@ -69,6 +72,17 @@ int IOSUHAX_Open(const char *dev)
         return iosuhaxHandle;
 
     iosuhaxHandle = IOS_Open((char*)(dev ? dev : "/dev/iosuhax"), 0);
+    if(iosuhaxHandle >= 0 && dev) //make sure device is actually iosuhax
+    {
+        unsigned int res = 0;
+        IOS_Ioctl(iosuhaxHandle, IOCTL_CHECK_IF_IOSUHAX, (void*)0, 0, &res, 4);
+        if(res != IOSUHAX_MAGIC_WORD)
+        {
+            IOS_Close(iosuhaxHandle);
+            iosuhaxHandle = -1;
+        }
+    }
+
     return iosuhaxHandle;
 }
 

@@ -820,7 +820,7 @@ int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode)
     return result;
 }
 
-int IOSUHAX_FSA_ChangeOwner(int fsaFd, const char* path, int user, int group)
+int IOSUHAX_FSA_ChangeOwner(int fsaFd, const char* path, uint32_t owner, uint32_t group)
 {
     if(iosuhaxHandle < 0)
         return iosuhaxHandle;
@@ -835,7 +835,7 @@ int IOSUHAX_FSA_ChangeOwner(int fsaFd, const char* path, int user, int group)
 
     io_buf[0] = fsaFd;
     io_buf[1] = sizeof(uint32_t) * input_cnt;
-    io_buf[2] = user;
+    io_buf[2] = owner;
     io_buf[3] = group;
     strcpy(((char*)io_buf) + io_buf[1], path);
 

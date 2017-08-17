@@ -36,28 +36,49 @@ extern "C" {
 #define IOS_ERROR_UNKNOWN           0xFFFFFFF7
 #define IOS_ERROR_NOEXISTS          0xFFFFFFFA
 
+#define FLAG_IS_LINK                0x00010000
+#define FLAG_IS_UNENCRYPTED         0x00800000
+#define FLAG_IS_FILE                0x01000000
+#define FLAG_IS_QUOTA               0x60000000
+#define FLAG_IS_DIRECTORY           0x80000000
+
 typedef struct
 {
     uint32_t flag;
     uint32_t permission;
     uint32_t owner_id;
     uint32_t group_id;
-	uint32_t size; // size in bytes
-	uint32_t physsize; // physical size on disk in bytes
-	uint32_t unk[3];
-	uint32_t id;
-	uint32_t ctime;
-	uint32_t mtime;
-	uint32_t unk2[0x0D];
-}fileStat_s;
+    uint32_t size; // size in bytes
+    uint32_t physsize; // physical size on disk in bytes
+    uint64_t quota_size;
+    uint32_t id;
+    uint64_t ctime;
+    uint64_t mtime;
+    uint8_t attributes[48];
+} FSStat;
 
 typedef struct
 {
-    fileStat_s stat;
+    FSStat stat;
 	char name[0x100];
 }directoryEntry_s;
 
-#define DIR_ENTRY_IS_DIRECTORY      0x80000000
+typedef struct
+{
+    uint8_t unknown[0x1E];
+} FileSystemInfo;
+
+typedef struct
+{
+    uint8_t unknown[0x28];
+} DeviceInfo;
+
+typedef struct
+{
+    uint64_t blocks_count;
+    uint64_t some_count;
+    uint32_t block_size;
+} BlockInfo;
 
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL (1 << 1)
@@ -78,7 +99,15 @@ int IOSUHAX_FSA_Mount(int fsaFd, const char* device_path, const char* volume_pat
 int IOSUHAX_FSA_Unmount(int fsaFd, const char* path, uint32_t flags);
 int IOSUHAX_FSA_FlushVolume(int fsaFd, const char* volume_path);
 
-int IOSUHAX_FSA_GetDeviceInfo(int fsaFd, const char* device_path, int type, uint32_t* out_data);
+int IOSUHAX_FSA_GetFreeSpaceSize(int fsaFd, const char *path, uint64_t* out_data);
+int IOSUHAX_FSA_GetDirSize(int fsaFd, const char *path, uint64_t* out_data);
+int IOSUHAX_FSA_GetEntryNum(int fsaFd, const char *path, uint32_t* out_data);
+int IOSUHAX_FSA_GetFileSystemInfo(int fsaFd, const char *path, FileSystemInfo* out_data);
+int IOSUHAX_FSA_GetDeviceInfo(int fsaFd, const char* device_path, DeviceInfo* out_data);
+int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, FSStat* out_data);
+int IOSUHAX_FSA_GetBadBlockInfo(int fsaFd, const char *path, BlockInfo* out_data);
+int IOSUHAX_FSA_GetJournalFreeSpaceSize(int fsaFd, const char *path, uint64_t* out_data);
+int IOSUHAX_FSA_GetFragmentBlockInfo(int fsaFd, const char *path, BlockInfo* out_data);
 
 int IOSUHAX_FSA_MakeDir(int fsaFd, const char* path, uint32_t flags);
 int IOSUHAX_FSA_OpenDir(int fsaFd, const char* path, int* outHandle);
@@ -90,10 +119,9 @@ int IOSUHAX_FSA_ChangeDir(int fsaFd, const char *path);
 int IOSUHAX_FSA_OpenFile(int fsaFd, const char* path, const char* mode, int* outHandle);
 int IOSUHAX_FSA_ReadFile(int fsaFd, void* data, uint32_t size, uint32_t cnt, int fileHandle, uint32_t flags);
 int IOSUHAX_FSA_WriteFile(int fsaFd, const void* data, uint32_t size, uint32_t cnt, int fileHandle, uint32_t flags);
-int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s* out_data);
+int IOSUHAX_FSA_GetStatFile(int fsaFd, int fileHandle, FSStat* out_data);
 int IOSUHAX_FSA_CloseFile(int fsaFd, int fileHandle);
 int IOSUHAX_FSA_SetFilePos(int fsaFd, int fileHandle, uint32_t position);
-int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, fileStat_s* out_data);
 int IOSUHAX_FSA_Remove(int fsaFd, const char *path);
 int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode);
 int IOSUHAX_FSA_ChangeOwner(int fsaFd, const char* path, uint32_t owner, uint32_t group);

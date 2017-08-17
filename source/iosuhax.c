@@ -40,7 +40,7 @@
 #define IOCTL_FSA_CLOSE             0x41
 #define IOCTL_FSA_MOUNT             0x42
 #define IOCTL_FSA_UNMOUNT           0x43
-#define IOCTL_FSA_GETDEVICEINFO     0x44
+#define IOCTL_FSA_GETINFO           0x44
 #define IOCTL_FSA_OPENDIR           0x45
 #define IOCTL_FSA_READDIR           0x46
 #define IOCTL_FSA_CLOSEDIR          0x47
@@ -48,7 +48,7 @@
 #define IOCTL_FSA_OPENFILE          0x49
 #define IOCTL_FSA_READFILE          0x4A
 #define IOCTL_FSA_WRITEFILE         0x4B
-#define IOCTL_FSA_STATFILE          0x4C
+#define IOCTL_FSA_GETSTATFILE       0x4C
 #define IOCTL_FSA_CLOSEFILE         0x4D
 #define IOCTL_FSA_SETFILEPOS        0x4E
 #define IOCTL_FSA_GETSTAT           0x4F
@@ -287,14 +287,14 @@ int IOSUHAX_FSA_FlushVolume(int fsaFd, const char *volume_path)
     return result;
 }
 
-int IOSUHAX_FSA_GetDeviceInfo(int fsaFd, const char* device_path, int type, uint32_t* out_data)
+int _IOSUHAX_FSA_GetInfo(int fsaFd, const char* path, int type, uint32_t* out_data, int out_data_size)
 {
     if(iosuhaxHandle < 0)
         return iosuhaxHandle;
 
     const int input_cnt = 3;
 
-    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(device_path) + 1;
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(path) + 1;
 
     uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
     if(!io_buf)
@@ -303,20 +303,65 @@ int IOSUHAX_FSA_GetDeviceInfo(int fsaFd, const char* device_path, int type, uint
     io_buf[0] = fsaFd;
     io_buf[1] = sizeof(uint32_t) * input_cnt;
     io_buf[2] = type;
-    strcpy(((char*)io_buf) + io_buf[1],  device_path);
+    strcpy(((char*)io_buf) + io_buf[1],  path);
 
     uint32_t out_buf[1 + 0x64 / 4];
 
-    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_GETDEVICEINFO, io_buf, io_buf_size, out_buf, sizeof(out_buf));
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_GETINFO, io_buf, io_buf_size, out_buf, sizeof(out_buf));
     if(res < 0)
     {
         free(io_buf);
         return res;
     }
 
-    memcpy(out_data, out_buf + 1, 0x64);
+    memcpy(out_data, out_buf + 1, out_data_size);
     free(io_buf);
     return out_buf[0];
+}
+
+int IOSUHAX_FSA_GetFreeSpaceSize(int fsaFd, const char *path, uint64_t* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 0, (uint32_t*)out_data, sizeof(uint64_t));
+}
+
+int IOSUHAX_FSA_GetDirSize(int fsaFd, const char *path, uint64_t* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 1, (uint32_t*)out_data, sizeof(uint64_t));
+}
+
+int IOSUHAX_FSA_GetEntryNum(int fsaFd, const char *path, uint32_t* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 2, (uint32_t*)out_data, sizeof(uint32_t));
+}
+
+int IOSUHAX_FSA_GetFileSystemInfo(int fsaFd, const char *path, FileSystemInfo* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 3, (uint32_t*)out_data, sizeof(FileSystemInfo));
+}
+
+int IOSUHAX_FSA_GetDeviceInfo(int fsaFd, const char* device_path, DeviceInfo* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, device_path, 4, (uint32_t*)out_data, sizeof(DeviceInfo));
+}
+
+int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, FSStat* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 5, (uint32_t*)out_data, sizeof(FSStat));
+}
+
+int IOSUHAX_FSA_GetBadBlockInfo(int fsaFd, const char *path, BlockInfo* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 6, (uint32_t*)out_data, sizeof(BlockInfo));
+}
+
+int IOSUHAX_FSA_GetJournalFreeSpaceSize(int fsaFd, const char *path, uint64_t* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 7, (uint32_t*)out_data, sizeof(uint64_t));
+}
+
+int IOSUHAX_FSA_GetFragmentBlockInfo(int fsaFd, const char *path, BlockInfo* out_data)
+{
+    return _IOSUHAX_FSA_GetInfo(fsaFd, path, 8, (uint32_t*)out_data, sizeof(BlockInfo));
 }
 
 int IOSUHAX_FSA_MakeDir(int fsaFd, const char* path, uint32_t flags)
@@ -619,7 +664,7 @@ int IOSUHAX_FSA_WriteFile(int fsaFd, const void* data, uint32_t size, uint32_t c
     return result;
 }
 
-int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s* out_data)
+int IOSUHAX_FSA_GetStatFile(int fsaFd, int fileHandle, FSStat* out_data)
 {
     if(iosuhaxHandle < 0)
         return iosuhaxHandle;
@@ -635,7 +680,7 @@ int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s* out_data)
     io_buf[0] = fsaFd;
     io_buf[1] = fileHandle;
 
-    int out_buf_size = 4 + sizeof(fileStat_s);
+    int out_buf_size = 4 + sizeof(FSStat);
     uint32_t *out_buffer = (uint32_t*)memalign(0x20, out_buf_size);
     if(!out_buffer)
     {
@@ -643,7 +688,7 @@ int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s* out_data)
         return -2;
     }
 
-    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_STATFILE, io_buf, io_buf_size, out_buffer, out_buf_size);
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_GETSTATFILE, io_buf, io_buf_size, out_buffer, out_buf_size);
     if(res < 0)
     {
         free(io_buf);
@@ -652,7 +697,7 @@ int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s* out_data)
     }
 
     int result = out_buffer[0];
-    memcpy(out_data, out_buffer + 1, sizeof(fileStat_s));
+    memcpy(out_data, out_buffer + 1, sizeof(FSStat));
 
     free(io_buf);
     free(out_buffer);
@@ -715,47 +760,6 @@ int IOSUHAX_FSA_SetFilePos(int fsaFd, int fileHandle, uint32_t position)
     }
 
     free(io_buf);
-    return result;
-}
-
-int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, fileStat_s* out_data)
-{
-    if(iosuhaxHandle < 0)
-        return iosuhaxHandle;
-
-    const int input_cnt = 2;
-
-    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(path) + 1;
-
-    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
-    if(!io_buf)
-        return -2;
-
-    io_buf[0] = fsaFd;
-    io_buf[1] = sizeof(uint32_t) * input_cnt;
-    strcpy(((char*)io_buf) + io_buf[1], path);
-
-    int out_buf_size = 4 + sizeof(fileStat_s);
-    uint32_t *out_buffer = (uint32_t*)memalign(0x20, out_buf_size);
-    if(!out_buffer)
-    {
-        free(io_buf);
-        return -2;
-    }
-
-    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_GETSTAT, io_buf, io_buf_size, out_buffer, out_buf_size);
-    if(res < 0)
-    {
-        free(io_buf);
-        free(out_buffer);
-        return res;
-    }
-
-    int result = out_buffer[0];
-    memcpy(out_data, out_buffer + 1, sizeof(fileStat_s));
-
-    free(io_buf);
-    free(out_buffer);
     return result;
 }
 

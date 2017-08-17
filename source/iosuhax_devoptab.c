@@ -158,8 +158,8 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
 
     if(result == 0)
     {
-        fileStat_s stats;
-        result = IOSUHAX_FSA_StatFile(dev->fsaFd, fd, &stats);
+        FSStat stats;
+        result = IOSUHAX_FSA_GetStatFile(dev->fsaFd, fd, &stats);
         if(result != 0) {
             IOSUHAX_FSA_CloseFile(dev->fsaFd, fd);
             r->_errno = result;
@@ -343,8 +343,8 @@ static int fs_dev_fstat_r (struct _reent *r, int fd, struct stat *st)
     // Zero out the stat buffer
     memset(st, 0, sizeof(struct stat));
 
-    fileStat_s stats;
-    int result = IOSUHAX_FSA_StatFile(file->dev->fsaFd, fd, &stats);
+    FSStat stats;
+    int result = IOSUHAX_FSA_GetStatFile(file->dev->fsaFd, fd, &stats);
     if(result != 0) {
         r->_errno = result;
         OSUnlockMutex(file->dev->pMutex);
@@ -414,7 +414,7 @@ static int fs_dev_stat_r (struct _reent *r, const char *path, struct stat *st)
         return -1;
     }
 
-    fileStat_s stats;
+    FSStat stats;
 
     int result = IOSUHAX_FSA_GetStat(dev->fsaFd, real_path, &stats);
 
@@ -638,7 +638,7 @@ static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs 
 
     uint64_t size;
 
-    int result = IOSUHAX_FSA_GetDeviceInfo(dev->fsaFd, real_path, 0x00, (uint32_t*)&size);
+    int result = IOSUHAX_FSA_GetFreeSpaceSize(dev->fsaFd, real_path, &size);
 
     free(real_path);
 

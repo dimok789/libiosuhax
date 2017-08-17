@@ -79,6 +79,7 @@
 #define IOCTL_FSA_FLUSHQUOTA        0x69
 #define IOCTL_FSA_ROLLBACKQUOTA     0x6A
 #define IOCTL_FSA_ROLLBACKQUOTAFORCE 0x6B
+#define IOCTL_FSA_CHANGEMODEEX      0x6C
 
 static int iosuhaxHandle = -1;
 
@@ -1303,6 +1304,40 @@ int IOSUHAX_FSA_Remove(int fsaFd, const char *path)
     return result;
 }
 
+int IOSUHAX_FSA_Rename(int fsaFd, const char *old_path, const char *new_path)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 3;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(old_path) + strlen(new_path) + 2;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    memset(io_buf, 0, io_buf_size);
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    io_buf[2] = io_buf[1] + strlen(old_path) + 1;
+
+    strcpy(((char*)io_buf) + io_buf[1],  old_path);
+    strcpy(((char*)io_buf) + io_buf[2],  new_path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_RENAME, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
 int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode)
 {
     if(iosuhaxHandle < 0)
@@ -1324,6 +1359,38 @@ int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode)
     int result;
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_CHANGEMODE, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_ChangeModeEx(int fsaFd, const char* path, int mode, int mask)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 4;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    io_buf[2] = mode;
+    io_buf[3] = mask;
+    strcpy(((char*)io_buf) + io_buf[1], path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_CHANGEMODEEX, io_buf, io_buf_size, &result, sizeof(result));
     if(res < 0)
     {
         free(io_buf);

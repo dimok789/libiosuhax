@@ -140,7 +140,9 @@ int IOSUHAX_FSA_GetFilePos(int fsaFd, int fileHandle, uint32_t* position);
 int IOSUHAX_FSA_SetFilePos(int fsaFd, int fileHandle, uint32_t position);
 int IOSUHAX_FSA_IsEof(int fsaFd, int fileHandle);
 int IOSUHAX_FSA_Remove(int fsaFd, const char *path);
+int IOSUHAX_FSA_Rename(int fsaFd, const char *old_path, const char *new_path);
 int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode);
+int IOSUHAX_FSA_ChangeModeEx(int fsaFd, const char* path, int mode, int mask);
 int IOSUHAX_FSA_ChangeOwner(int fsaFd, const char* path, uint32_t owner, uint32_t group);
 
 int IOSUHAX_FSA_RawOpen(int fsaFd, const char* device_path, int* outHandle);

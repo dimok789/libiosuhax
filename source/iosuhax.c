@@ -73,6 +73,12 @@
 #define IOCTL_FSA_TRUNCATEFILE      0x63
 #define IOCTL_FSA_GETFILEPOS        0x64
 #define IOCTL_FSA_ISEOF             0x65
+#define IOCTL_FSA_ROLLBACKVOLUME    0x66
+#define IOCTL_FSA_GETCWD            0x67
+#define IOCTL_FSA_MAKEQUOTA         0x68
+#define IOCTL_FSA_FLUSHQUOTA        0x69
+#define IOCTL_FSA_ROLLBACKQUOTA     0x6A
+#define IOCTL_FSA_ROLLBACKQUOTAFORCE 0x6B
 
 static int iosuhaxHandle = -1;
 
@@ -286,6 +292,36 @@ int IOSUHAX_FSA_FlushVolume(int fsaFd, const char *volume_path)
     int result;
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_FLUSHVOLUME, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_RollbackVolume(int fsaFd, const char *volume_path)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 2;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(volume_path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    strcpy(((char*)io_buf) + io_buf[1], volume_path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_ROLLBACKVOLUME, io_buf, io_buf_size, &result, sizeof(result));
     if(res < 0)
     {
         free(io_buf);
@@ -551,6 +587,168 @@ int IOSUHAX_FSA_ChangeDir(int fsaFd, const char *path)
     int result;
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_CHDIR, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_GetCwd(int fsaFd, char *out_path, int out_size)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 2;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt;
+
+    if (out_size > 0x27F) out_size = 0x27F;
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = out_size;
+
+    int result_vec_size = 4 + 0x280;
+    uint8_t *result_vec = (uint8_t*) memalign(0x20, result_vec_size);
+    if(!result_vec)
+    {
+        free(io_buf);
+        return -2;
+    }
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_GETCWD, io_buf, io_buf_size, result_vec, result_vec_size);
+    if(res < 0)
+    {
+        free(result_vec);
+        free(io_buf);
+        return res;
+    }
+
+    int result = *(int*)result_vec;
+    strncpy(out_path, (char*)result_vec + 4, out_size);
+    free(io_buf);
+    free(result_vec);
+    return result;
+}
+
+int IOSUHAX_FSA_MakeQuota(int fsaFd, const char* quota_path, uint32_t flags, uint64_t size)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 5;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(quota_path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    io_buf[2] = flags;
+    io_buf[3] = (size >> 32) & 0xFFFFFFFF;
+    io_buf[4] = size & 0xFFFFFFFF;
+    strcpy(((char*)io_buf) + io_buf[1], quota_path);
+
+    int result;
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_MAKEDIR, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_FlushQuota(int fsaFd, const char *quota_path)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 2;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(quota_path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    strcpy(((char*)io_buf) + io_buf[1], quota_path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_FLUSHQUOTA, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_RollbackQuota(int fsaFd, const char *quota_path)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 2;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(quota_path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    strcpy(((char*)io_buf) + io_buf[1], quota_path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_ROLLBACKQUOTA, io_buf, io_buf_size, &result, sizeof(result));
+    if(res < 0)
+    {
+        free(io_buf);
+        return res;
+    }
+
+    free(io_buf);
+    return result;
+}
+
+int IOSUHAX_FSA_RollbackQuotaForce(int fsaFd, const char *quota_path)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    const int input_cnt = 2;
+
+    int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(quota_path) + 1;
+
+    uint32_t *io_buf = (uint32_t*)memalign(0x20, io_buf_size);
+    if(!io_buf)
+        return -2;
+
+    io_buf[0] = fsaFd;
+    io_buf[1] = sizeof(uint32_t) * input_cnt;
+    strcpy(((char*)io_buf) + io_buf[1], quota_path);
+
+    int result;
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_ROLLBACKQUOTAFORCE, io_buf, io_buf_size, &result, sizeof(result));
     if(res < 0)
     {
         free(io_buf);

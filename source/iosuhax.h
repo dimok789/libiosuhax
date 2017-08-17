@@ -60,7 +60,7 @@ typedef struct
 typedef struct
 {
     FSStat stat;
-	char name[0x100];
+    char name[0x100];
 }directoryEntry_s;
 
 typedef struct
@@ -101,6 +101,7 @@ int IOSUHAX_FSA_Close(int fsaFd);
 int IOSUHAX_FSA_Mount(int fsaFd, const char* device_path, const char* volume_path, uint32_t flags, const char* arg_string, int arg_string_len);
 int IOSUHAX_FSA_Unmount(int fsaFd, const char* path, uint32_t flags);
 int IOSUHAX_FSA_FlushVolume(int fsaFd, const char* volume_path);
+int IOSUHAX_FSA_RollbackVolume(int fsaFd, const char* volume_path);
 
 int IOSUHAX_FSA_GetFreeSpaceSize(int fsaFd, const char *path, uint64_t* out_data);
 int IOSUHAX_FSA_GetDirSize(int fsaFd, const char *path, uint64_t* out_data);
@@ -118,6 +119,12 @@ int IOSUHAX_FSA_ReadDir(int fsaFd, int handle, directoryEntry_s* out_data);
 int IOSUHAX_FSA_RewindDir(int fsaFd, int dirHandle);
 int IOSUHAX_FSA_CloseDir(int fsaFd, int handle);
 int IOSUHAX_FSA_ChangeDir(int fsaFd, const char *path);
+int IOSUHAX_FSA_GetCwd(int fsaFd, char *out_path, int out_size);
+
+int IOSUHAX_FSA_MakeQuota(int fsaFd, const char* quota_path, uint32_t flags, uint64_t size);
+int IOSUHAX_FSA_FlushQuota(int fsaFd, const char* quota_path);
+int IOSUHAX_FSA_RollbackQuota(int fsaFd, const char* quota_path);
+int IOSUHAX_FSA_RollbackQuotaForce(int fsaFd, const char* quota_path);
 
 int IOSUHAX_FSA_OpenFile(int fsaFd, const char* path, const char* mode, int* outHandle);
 int IOSUHAX_FSA_OpenFileEx(int fsaFd, const char* path, const char* mode, int* outHandle, uint32_t flags, int create_mode, uint32_t create_alloc_size);

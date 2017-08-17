@@ -83,6 +83,9 @@ typedef struct
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL (1 << 1)
 
+#define FSA_OPENFLAGS_OPEN_UNENCRYPTED (1 << 0)
+#define FSA_OPENFLAGS_PREALLOC_SPACE (1 << 1)
+
 int IOSUHAX_Open(const char *dev);  // if dev == NULL the default path /dev/iosuhax will be used
 int IOSUHAX_Close(void);
 
@@ -117,11 +120,18 @@ int IOSUHAX_FSA_CloseDir(int fsaFd, int handle);
 int IOSUHAX_FSA_ChangeDir(int fsaFd, const char *path);
 
 int IOSUHAX_FSA_OpenFile(int fsaFd, const char* path, const char* mode, int* outHandle);
+int IOSUHAX_FSA_OpenFileEx(int fsaFd, const char* path, const char* mode, int* outHandle, uint32_t flags, int create_mode, uint32_t create_alloc_size);
 int IOSUHAX_FSA_ReadFile(int fsaFd, void* data, uint32_t size, uint32_t cnt, int fileHandle, uint32_t flags);
 int IOSUHAX_FSA_WriteFile(int fsaFd, const void* data, uint32_t size, uint32_t cnt, int fileHandle, uint32_t flags);
+int IOSUHAX_FSA_ReadFileWithPos(int fsaFd, void* data, uint32_t size, uint32_t cnt, uint32_t position, int fileHandle, uint32_t flags);
+int IOSUHAX_FSA_WriteFileWithPos(int fsaFd, const void* data, uint32_t size, uint32_t cnt, uint32_t position, int fileHandle, uint32_t flags);
 int IOSUHAX_FSA_GetStatFile(int fsaFd, int fileHandle, FSStat* out_data);
 int IOSUHAX_FSA_CloseFile(int fsaFd, int fileHandle);
+int IOSUHAX_FSA_FlushFile(int fsaFd, int fileHandle);
+int IOSUHAX_FSA_TruncateFile(int fsaFd, int fileHandle);
+int IOSUHAX_FSA_GetFilePos(int fsaFd, int fileHandle, uint32_t* position);
 int IOSUHAX_FSA_SetFilePos(int fsaFd, int fileHandle, uint32_t position);
+int IOSUHAX_FSA_IsEof(int fsaFd, int fileHandle);
 int IOSUHAX_FSA_Remove(int fsaFd, const char *path);
 int IOSUHAX_FSA_ChangeMode(int fsaFd, const char* path, int mode);
 int IOSUHAX_FSA_ChangeOwner(int fsaFd, const char* path, uint32_t owner, uint32_t group);

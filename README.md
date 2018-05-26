@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/dimok789/libiosuhax.svg)](https://travis-ci.org/dimok789/libiosuhax)

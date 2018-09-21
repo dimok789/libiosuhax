@@ -30,6 +30,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/iosupport.h>
 #include "os_functions.h"
 #include "iosuhax.h"
 
@@ -180,7 +181,7 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
 }
 
 
-static int fs_dev_close_r (struct _reent *r, int fd)
+static int fs_dev_close_r (struct _reent *r, void *fd)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {
@@ -202,7 +203,7 @@ static int fs_dev_close_r (struct _reent *r, int fd)
     return 0;
 }
 
-static off_t fs_dev_seek_r (struct _reent *r, int fd, off_t pos, int dir)
+static off_t fs_dev_seek_r (struct _reent *r, void *fd, off_t pos, int dir)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {
@@ -240,7 +241,7 @@ static off_t fs_dev_seek_r (struct _reent *r, int fd, off_t pos, int dir)
     return result;
 }
 
-static ssize_t fs_dev_write_r (struct _reent *r, int fd, const char *ptr, size_t len)
+static ssize_t fs_dev_write_r (struct _reent *r, void *fd, const char *ptr, size_t len)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {
@@ -285,7 +286,7 @@ static ssize_t fs_dev_write_r (struct _reent *r, int fd, const char *ptr, size_t
     return done;
 }
 
-static ssize_t fs_dev_read_r (struct _reent *r, int fd, char *ptr, size_t len)
+static ssize_t fs_dev_read_r (struct _reent *r, void *fd, char *ptr, size_t len)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {
@@ -331,7 +332,7 @@ static ssize_t fs_dev_read_r (struct _reent *r, int fd, char *ptr, size_t len)
 }
 
 
-static int fs_dev_fstat_r (struct _reent *r, int fd, struct stat *st)
+static int fs_dev_fstat_r (struct _reent *r, void *fd, struct stat *st)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {
@@ -345,7 +346,7 @@ static int fs_dev_fstat_r (struct _reent *r, int fd, struct stat *st)
     memset(st, 0, sizeof(struct stat));
 
     fileStat_s stats;
-    int result = IOSUHAX_FSA_StatFile(file->dev->fsaFd, fd, &stats);
+    int result = IOSUHAX_FSA_StatFile(file->dev->fsaFd, (int)fd, &stats);
     if(result != 0) {
         r->_errno = result;
         OSUnlockMutex(file->dev->pMutex);
@@ -369,7 +370,7 @@ static int fs_dev_fstat_r (struct _reent *r, int fd, struct stat *st)
     return 0;
 }
 
-static int fs_dev_ftruncate_r (struct _reent *r, int fd, off_t len)
+static int fs_dev_ftruncate_r (struct _reent *r, void *fd, off_t len)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {
@@ -382,7 +383,7 @@ static int fs_dev_ftruncate_r (struct _reent *r, int fd, off_t len)
     return -1;
 }
 
-static int fs_dev_fsync_r (struct _reent *r, int fd)
+static int fs_dev_fsync_r (struct _reent *r, void *fd)
 {
     fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
     if(!file->dev) {

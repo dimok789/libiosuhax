@@ -7,21 +7,6 @@ extern "C" {
 
 #define OS_MUTEX_SIZE                   44
 
-#ifndef __WUT__
-//!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//! Mutex functions
-//!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-extern void (* OSInitMutex)(void* mutex);
-extern void (* OSLockMutex)(void* mutex);
-extern void (* OSUnlockMutex)(void* mutex);
-
-//!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//! IOS function
-//!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-extern int (*IOS_Ioctl)(int fd, unsigned int request, void *input_buffer,unsigned int input_buffer_len, void *output_buffer, unsigned int output_buffer_len);
-extern int (*IOS_Open)(char *path, unsigned int mode);
-extern int (*IOS_Close)(int fd);
-#else
 //!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //! Mutex functions
 //!----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +20,6 @@ extern void OSUnlockMutex(void* mutex);
 extern int IOS_Ioctl(int fd, unsigned int request, void *input_buffer,unsigned int input_buffer_len, void *output_buffer, unsigned int output_buffer_len);
 extern int IOS_Open(char *path, unsigned int mode);
 extern int IOS_Close(int fd);
-#endif // __WUT__
 
 #ifdef __cplusplus
 }

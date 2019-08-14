@@ -8,7 +8,6 @@ env:
   global:
     - DEVKITPRO=/opt/devkitpro    
     - DEVKITPPC=/opt/devkitpro/devkitPPC
-    - PORTLIBREPOS=$HOME/portlibrepos
 
 cache:
   directories:

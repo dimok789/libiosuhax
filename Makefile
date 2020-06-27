@@ -110,8 +110,8 @@ dist-src:
 dist: dist-src dist-bin
 
 install: dist-bin
-	mkdir -p $(DESTDIR)$(DEVKITPRO)/wut
-	bzip2 -cd libiosuhax-$(VERSION).tar.bz2 | tar -xf - -C $(DESTDIR)$(DEVKITPRO)/wut
+	mkdir -p $(DESTDIR)$(DEVKITPRO)/wut/usr
+	bzip2 -cd libiosuhax-$(VERSION).tar.bz2 | tar -xf - -C $(DESTDIR)$(DEVKITPRO)/wut/usr
 
 lib:
 	@[ -d $@ ] || mkdir -p $@

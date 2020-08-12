@@ -121,27 +121,44 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
     // Determine which mode the file is opened for
     file->flags = flags;
 
-    const char *mode_str;
-
-    if ((flags & 0x03) == O_RDONLY) {
+    const char *fsMode;
+    
+    // Map flags to open modes
+    if (flags == 0) {
         file->read = 1;
         file->write = 0;
         file->append = 0;
-        mode_str = "r";
-    } else if ((flags & 0x03) == O_WRONLY) {
-        file->read = 0;
-        file->write = 1;
-        file->append = (flags & O_APPEND);
-        mode_str = file->append ? "a" : "w";
-    } else if ((flags & 0x03) == O_RDWR) {
+        fsMode = "r";
+    } else if (flags == 2) {
         file->read = 1;
         file->write = 1;
-        file->append = (flags & O_APPEND);
-        mode_str = file->append ? "a+" : "r+";
+        file->append = 0;
+        fsMode = "r+";
+    } else if (flags == 0x601) {
+        file->read = 0;
+        file->write = 1;
+        file->append = 0;
+        fsMode = "w";
+    } else if(flags == 0x602) {
+        file->read = 1;
+        file->write = 1;
+        file->append = 0;
+        fsMode = "w+";
+    } else if(flags == 0x209) {
+        file->read = 0;
+        file->write = 1;
+        file->append = 1;
+        fsMode = "a";
+    } else if(flags == 0x20A) {
+        file->read = 1;
+        file->write = 1;
+        file->append = 1;
+        fsMode = "a+";
     } else {
-        r->_errno = EACCES;
+        r->_errno = EINVAL;
         return -1;
     }
+   
 
     int fd = -1;
 
@@ -154,7 +171,7 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
         return -1;
     }
 
-    int result = IOSUHAX_FSA_OpenFile(dev->fsaFd, real_path, mode_str, &fd);
+    int result = IOSUHAX_FSA_OpenFile(dev->fsaFd, real_path, fsMode, &fd);
 
     free(real_path);
 

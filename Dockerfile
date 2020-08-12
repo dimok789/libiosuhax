@@ -2,7 +2,7 @@ FROM wiiuenv/devkitppc:20200810
 
 WORKDIR tmp_build
 COPY . .
-RUN make clean && make -j8 && mkdir -p /artifacts/wut/usr && cp -r lib /artifacts/wut/usr && cp -r include /artifacts/wut/usr
+RUN make clean && make && mkdir -p /artifacts/wut/usr && cp -r lib /artifacts/wut/usr && cp -r include /artifacts/wut/usr
 WORKDIR /artifacts
 
 FROM scratch

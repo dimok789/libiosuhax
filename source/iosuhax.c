@@ -158,6 +158,44 @@ int IOSUHAX_memcpy(uint32_t dst, uint32_t src, uint32_t size)
     return IOS_Ioctl(iosuhaxHandle, IOCTL_MEMCPY, io_buf, 3 * sizeof(uint32_t), 0, 0);
 }
 
+int IOSUHAX_kern_write32(uint32_t address, uint32_t value)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    ALIGN(0x20) uint32_t io_buf[0x20 >> 2];
+    io_buf[0] = address;
+    io_buf[1] = value;
+
+    return IOS_Ioctl(iosuhaxHandle, IOCTL_KERN_WRITE32, io_buf, 2 * sizeof(uint32_t), 0, 0);
+}
+
+int IOSUHAX_kern_read32(uint32_t address, uint32_t* out_buffer, uint32_t count)
+{
+    if(iosuhaxHandle < 0)
+        return iosuhaxHandle;
+
+    ALIGN(0x20) uint32_t io_buf[0x20 >> 2];
+    io_buf[0] = address;
+
+    void* tmp_buf = NULL;
+
+    if(((uintptr_t)out_buffer & 0x1F) || ((count * 4) & 0x1F))
+    {
+       tmp_buf = (uint32_t*)memalign(0x20, ROUNDUP((count * 4), 0x20));
+       if(!tmp_buf)
+           return -2;
+    }
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_KERN_READ32, io_buf, sizeof(address), tmp_buf ? tmp_buf : out_buffer, count * 4);
+
+    if(res >= 0 && tmp_buf)
+       memcpy(out_buffer, tmp_buf, count * 4);
+
+    free(tmp_buf);
+    return res;
+}
+
 int IOSUHAX_SVC(uint32_t svc_id, uint32_t * args, uint32_t arg_cnt)
 {
     if(iosuhaxHandle < 0)

@@ -69,6 +69,9 @@ int IOSUHAX_memwrite(uint32_t address, const uint8_t * buffer, uint32_t size); /
 int IOSUHAX_memread(uint32_t address, uint8_t * out_buffer, uint32_t size);    // IOSU external output
 int IOSUHAX_memcpy(uint32_t dst, uint32_t src, uint32_t size);                 // IOSU internal memcpy only
 
+int IOSUHAX_kern_write32(uint32_t address, uint32_t value);
+int IOSUHAX_kern_read32(uint32_t address, uint32_t* out_buffer, uint32_t count);
+
 int IOSUHAX_SVC(uint32_t svc_id, uint32_t * args, uint32_t arg_cnt);
 
 int IOSUHAX_FSA_Open();

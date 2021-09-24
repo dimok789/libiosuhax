@@ -33,6 +33,7 @@ extern "C" {
 //! dev_path:               (optional) if a device should be mounted to the mount_path. If NULL no IOSUHAX_FSA_Mount is not executed.
 //! mount_path:             path to map to virtual device name
 int mount_fs(const char *virt_name, int fsaFd, const char *dev_path, const char *mount_path);
+
 int unmount_fs(const char *virt_name);
 
 #ifdef __cplusplus

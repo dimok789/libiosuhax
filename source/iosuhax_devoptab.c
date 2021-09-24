@@ -59,8 +59,7 @@ typedef struct _fs_dev_dir_entry_t {
     int dirHandle;
 } fs_dev_dir_entry_t;
 
-static fs_dev_private_t *fs_dev_get_device_data(const char *path)
-{
+static fs_dev_private_t *fs_dev_get_device_data(const char *path) {
     const devoptab_t *devoptab = NULL;
     char name[128] = {0};
     int i;
@@ -77,7 +76,7 @@ static fs_dev_private_t *fs_dev_get_device_data(const char *path)
         devoptab = devoptab_list[i];
         if (devoptab && devoptab->name) {
             if (strcmp(name, devoptab->name) == 0) {
-                return (fs_dev_private_t *)devoptab->deviceData;
+                return (fs_dev_private_t *) devoptab->deviceData;
             }
         }
     }
@@ -85,8 +84,7 @@ static fs_dev_private_t *fs_dev_get_device_data(const char *path)
     return NULL;
 }
 
-static char *fs_dev_real_path (const char *path, fs_dev_private_t *dev)
-{
+static char *fs_dev_real_path(const char *path, fs_dev_private_t *dev) {
     // Sanity check
     if (!path)
         return NULL;
@@ -98,8 +96,8 @@ static char *fs_dev_real_path (const char *path, fs_dev_private_t *dev)
 
     int mount_len = strlen(dev->mount_path);
 
-    char *new_name = (char*)malloc(mount_len + strlen(path) + 1);
-    if(new_name) {
+    char *new_name = (char *) malloc(mount_len + strlen(path) + 1);
+    if (new_name) {
         strcpy(new_name, dev->mount_path);
         strcpy(new_name + mount_len, path);
         return new_name;
@@ -107,22 +105,21 @@ static char *fs_dev_real_path (const char *path, fs_dev_private_t *dev)
     return new_name;
 }
 
-static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, int flags, int mode)
-{
+static int fs_dev_open_r(struct _reent *r, void *fileStruct, const char *path, int flags, int mode) {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
 
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fileStruct;
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fileStruct;
 
     file->dev = dev;
     // Determine which mode the file is opened for
     file->flags = flags;
 
     const char *fsMode;
-    
+
     // Map flags to open modes
     if (flags == 0) {
         file->read = 1;
@@ -139,17 +136,17 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
         file->write = 1;
         file->append = 0;
         fsMode = "w";
-    } else if(flags == 0x602) {
+    } else if (flags == 0x602) {
         file->read = 1;
         file->write = 1;
         file->append = 0;
         fsMode = "w+";
-    } else if(flags == 0x209) {
+    } else if (flags == 0x209) {
         file->read = 0;
         file->write = 1;
         file->append = 1;
         fsMode = "a";
-    } else if(flags == 0x20A) {
+    } else if (flags == 0x20A) {
         file->read = 1;
         file->write = 1;
         file->append = 1;
@@ -158,14 +155,14 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
         r->_errno = EINVAL;
         return -1;
     }
-   
+
 
     int fd = -1;
 
     OSLockMutex(dev->pMutex);
 
     char *real_path = fs_dev_real_path(path, dev);
-    if(!path) {
+    if (!path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -175,11 +172,10 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
 
     free(real_path);
 
-    if(result == 0)
-    {
+    if (result == 0) {
         fileStat_s stats;
         result = IOSUHAX_FSA_StatFile(dev->fsaFd, fd, &stats);
-        if(result != 0) {
+        if (result != 0) {
             IOSUHAX_FSA_CloseFile(dev->fsaFd, fd);
             r->_errno = result;
             OSUnlockMutex(dev->pMutex);
@@ -189,7 +185,7 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
         file->pos = 0;
         file->len = stats.size;
         OSUnlockMutex(dev->pMutex);
-        return (int)file;
+        return (int) file;
     }
 
     r->_errno = result;
@@ -198,10 +194,9 @@ static int fs_dev_open_r (struct _reent *r, void *fileStruct, const char *path, 
 }
 
 
-static int fs_dev_close_r (struct _reent *r, void *fd)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static int fs_dev_close_r(struct _reent *r, void *fd) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -212,62 +207,56 @@ static int fs_dev_close_r (struct _reent *r, void *fd)
 
     OSUnlockMutex(file->dev->pMutex);
 
-    if(result < 0)
-    {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
     return 0;
 }
 
-static off_t fs_dev_seek_r (struct _reent *r, void *fd, off_t pos, int dir)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static off_t fs_dev_seek_r(struct _reent *r, void *fd, off_t pos, int dir) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return 0;
     }
 
     OSLockMutex(file->dev->pMutex);
 
-    switch(dir)
-    {
-    case SEEK_SET:
-        file->pos = pos;
-        break;
-    case SEEK_CUR:
-        file->pos += pos;
-        break;
-    case SEEK_END:
-        file->pos = file->len + pos;
-        break;
-    default:
-        r->_errno = EINVAL;
-        return -1;
+    switch (dir) {
+        case SEEK_SET:
+            file->pos = pos;
+            break;
+        case SEEK_CUR:
+            file->pos += pos;
+            break;
+        case SEEK_END:
+            file->pos = file->len + pos;
+            break;
+        default:
+            r->_errno = EINVAL;
+            return -1;
     }
 
     int result = IOSUHAX_FSA_SetFilePos(file->dev->fsaFd, file->fd, file->pos);
 
     OSUnlockMutex(file->dev->pMutex);
 
-    if(result == 0)
-    {
+    if (result == 0) {
         return file->pos;
     }
 
     return result;
 }
 
-static ssize_t fs_dev_write_r (struct _reent *r, void *fd, const char *ptr, size_t len)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static ssize_t fs_dev_write_r(struct _reent *r, void *fd, const char *ptr, size_t len) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return 0;
     }
 
-    if(!file->write)
-    {
+    if (!file->write) {
         r->_errno = EACCES;
         return 0;
     }
@@ -276,24 +265,18 @@ static ssize_t fs_dev_write_r (struct _reent *r, void *fd, const char *ptr, size
 
     size_t done = 0;
 
-    while(done < len)
-    {
+    while (done < len) {
         size_t write_size = len - done;
 
         int result = IOSUHAX_FSA_WriteFile(file->dev->fsaFd, ptr + done, 0x01, write_size, file->fd, 0);
-        if(result < 0)
-        {
+        if (result < 0) {
             r->_errno = result;
             break;
-        }
-        else if(result == 0)
-        {
-            if(write_size > 0)
+        } else if (result == 0) {
+            if (write_size > 0)
                 done = 0;
             break;
-        }
-        else
-        {
+        } else {
             done += result;
             file->pos += result;
         }
@@ -303,16 +286,14 @@ static ssize_t fs_dev_write_r (struct _reent *r, void *fd, const char *ptr, size
     return done;
 }
 
-static ssize_t fs_dev_read_r (struct _reent *r, void *fd, char *ptr, size_t len)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static ssize_t fs_dev_read_r(struct _reent *r, void *fd, char *ptr, size_t len) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return 0;
     }
 
-    if(!file->read)
-    {
+    if (!file->read) {
         r->_errno = EACCES;
         return 0;
     }
@@ -321,24 +302,18 @@ static ssize_t fs_dev_read_r (struct _reent *r, void *fd, char *ptr, size_t len)
 
     size_t done = 0;
 
-    while(done < len)
-    {
+    while (done < len) {
         size_t read_size = len - done;
 
         int result = IOSUHAX_FSA_ReadFile(file->dev->fsaFd, ptr + done, 0x01, read_size, file->fd, 0);
-        if(result < 0)
-        {
+        if (result < 0) {
             r->_errno = result;
             done = 0;
             break;
-        }
-        else if(result == 0)
-        {
+        } else if (result == 0) {
             //! TODO: error on read_size > 0
             break;
-        }
-        else
-        {
+        } else {
             done += result;
             file->pos += result;
         }
@@ -349,10 +324,9 @@ static ssize_t fs_dev_read_r (struct _reent *r, void *fd, char *ptr, size_t len)
 }
 
 
-static int fs_dev_fstat_r (struct _reent *r, void *fd, struct stat *st)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static int fs_dev_fstat_r(struct _reent *r, void *fd, struct stat *st) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -363,8 +337,8 @@ static int fs_dev_fstat_r (struct _reent *r, void *fd, struct stat *st)
     memset(st, 0, sizeof(struct stat));
 
     fileStat_s stats;
-    int result = IOSUHAX_FSA_StatFile(file->dev->fsaFd, (int)fd, &stats);
-    if(result != 0) {
+    int result = IOSUHAX_FSA_StatFile(file->dev->fsaFd, (int) fd, &stats);
+    if (result != 0) {
         r->_errno = result;
         OSUnlockMutex(file->dev->pMutex);
         return -1;
@@ -387,10 +361,9 @@ static int fs_dev_fstat_r (struct _reent *r, void *fd, struct stat *st)
     return 0;
 }
 
-static int fs_dev_ftruncate_r (struct _reent *r, void *fd, off_t len)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static int fs_dev_ftruncate_r(struct _reent *r, void *fd, off_t len) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -400,10 +373,9 @@ static int fs_dev_ftruncate_r (struct _reent *r, void *fd, off_t len)
     return -1;
 }
 
-static int fs_dev_fsync_r (struct _reent *r, void *fd)
-{
-    fs_dev_file_state_t *file = (fs_dev_file_state_t *)fd;
-    if(!file->dev) {
+static int fs_dev_fsync_r(struct _reent *r, void *fd) {
+    fs_dev_file_state_t *file = (fs_dev_file_state_t *) fd;
+    if (!file->dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -413,10 +385,9 @@ static int fs_dev_fsync_r (struct _reent *r, void *fd)
     return -1;
 }
 
-static int fs_dev_stat_r (struct _reent *r, const char *path, struct stat *st)
-{
+static int fs_dev_stat_r(struct _reent *r, const char *path, struct stat *st) {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -427,7 +398,7 @@ static int fs_dev_stat_r (struct _reent *r, const char *path, struct stat *st)
     memset(st, 0, sizeof(struct stat));
 
     char *real_path = fs_dev_real_path(path, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -439,14 +410,14 @@ static int fs_dev_stat_r (struct _reent *r, const char *path, struct stat *st)
 
     free(real_path);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         OSUnlockMutex(dev->pMutex);
         return -1;
     }
 
     // mark root also as directory
-    st->st_mode = ((stats.flag & 0x80000000) || (strlen(dev->mount_path) + 1 == strlen(real_path)))? S_IFDIR : S_IFREG;
+    st->st_mode = ((stats.flag & 0x80000000) || (strlen(dev->mount_path) + 1 == strlen(real_path))) ? S_IFDIR : S_IFREG;
     st->st_nlink = 1;
     st->st_size = stats.size;
     st->st_blocks = (stats.size + 511) >> 9;
@@ -464,16 +435,14 @@ static int fs_dev_stat_r (struct _reent *r, const char *path, struct stat *st)
     return 0;
 }
 
-static int fs_dev_link_r (struct _reent *r, const char *existing, const char *newLink)
-{
+static int fs_dev_link_r(struct _reent *r, const char *existing, const char *newLink) {
     r->_errno = ENOTSUP;
     return -1;
 }
 
-static int fs_dev_unlink_r (struct _reent *r, const char *name)
-{
+static int fs_dev_unlink_r(struct _reent *r, const char *name) {
     fs_dev_private_t *dev = fs_dev_get_device_data(name);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -481,7 +450,7 @@ static int fs_dev_unlink_r (struct _reent *r, const char *name)
     OSLockMutex(dev->pMutex);
 
     char *real_path = fs_dev_real_path(name, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -493,7 +462,7 @@ static int fs_dev_unlink_r (struct _reent *r, const char *name)
 
     OSUnlockMutex(dev->pMutex);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
@@ -501,10 +470,9 @@ static int fs_dev_unlink_r (struct _reent *r, const char *name)
     return result;
 }
 
-static int fs_dev_chdir_r (struct _reent *r, const char *name)
-{
+static int fs_dev_chdir_r(struct _reent *r, const char *name) {
     fs_dev_private_t *dev = fs_dev_get_device_data(name);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -512,7 +480,7 @@ static int fs_dev_chdir_r (struct _reent *r, const char *name)
     OSLockMutex(dev->pMutex);
 
     char *real_path = fs_dev_real_path(name, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -524,7 +492,7 @@ static int fs_dev_chdir_r (struct _reent *r, const char *name)
 
     OSUnlockMutex(dev->pMutex);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
@@ -532,10 +500,9 @@ static int fs_dev_chdir_r (struct _reent *r, const char *name)
     return 0;
 }
 
-static int fs_dev_rename_r (struct _reent *r, const char *oldName, const char *newName)
-{
+static int fs_dev_rename_r(struct _reent *r, const char *oldName, const char *newName) {
     fs_dev_private_t *dev = fs_dev_get_device_data(oldName);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -543,13 +510,13 @@ static int fs_dev_rename_r (struct _reent *r, const char *oldName, const char *n
     OSLockMutex(dev->pMutex);
 
     char *real_oldpath = fs_dev_real_path(oldName, dev);
-    if(!real_oldpath) {
+    if (!real_oldpath) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
     }
     char *real_newpath = fs_dev_real_path(newName, dev);
-    if(!real_newpath) {
+    if (!real_newpath) {
         r->_errno = ENOMEM;
         free(real_oldpath);
         OSUnlockMutex(dev->pMutex);
@@ -564,7 +531,7 @@ static int fs_dev_rename_r (struct _reent *r, const char *oldName, const char *n
 
     OSUnlockMutex(dev->pMutex);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
@@ -573,10 +540,9 @@ static int fs_dev_rename_r (struct _reent *r, const char *oldName, const char *n
 
 }
 
-static int fs_dev_mkdir_r (struct _reent *r, const char *path, int mode)
-{
+static int fs_dev_mkdir_r(struct _reent *r, const char *path, int mode) {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -584,7 +550,7 @@ static int fs_dev_mkdir_r (struct _reent *r, const char *path, int mode)
     OSLockMutex(dev->pMutex);
 
     char *real_path = fs_dev_real_path(path, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -596,7 +562,7 @@ static int fs_dev_mkdir_r (struct _reent *r, const char *path, int mode)
 
     OSUnlockMutex(dev->pMutex);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
@@ -604,10 +570,9 @@ static int fs_dev_mkdir_r (struct _reent *r, const char *path, int mode)
     return 0;
 }
 
-static int fs_dev_chmod_r (struct _reent *r, const char *path, int mode)
-{
+static int fs_dev_chmod_r(struct _reent *r, const char *path, int mode) {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -615,7 +580,7 @@ static int fs_dev_chmod_r (struct _reent *r, const char *path, int mode)
     OSLockMutex(dev->pMutex);
 
     char *real_path = fs_dev_real_path(path, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -627,7 +592,7 @@ static int fs_dev_chmod_r (struct _reent *r, const char *path, int mode)
 
     OSUnlockMutex(dev->pMutex);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
@@ -635,10 +600,9 @@ static int fs_dev_chmod_r (struct _reent *r, const char *path, int mode)
     return 0;
 }
 
-static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs *buf)
-{
+static int fs_dev_statvfs_r(struct _reent *r, const char *path, struct statvfs *buf) {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -649,7 +613,7 @@ static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs 
     memset(buf, 0, sizeof(struct statvfs));
 
     char *real_path = fs_dev_real_path(path, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -657,11 +621,11 @@ static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs 
 
     uint64_t size;
 
-    int result = IOSUHAX_FSA_GetDeviceInfo(dev->fsaFd, real_path, 0x00, (uint32_t*)&size);
+    int result = IOSUHAX_FSA_GetDeviceInfo(dev->fsaFd, real_path, 0x00, (uint32_t *) &size);
 
     free(real_path);
 
-    if(result < 0) {
+    if (result < 0) {
         r->_errno = result;
         OSUnlockMutex(dev->pMutex);
         return -1;
@@ -686,7 +650,7 @@ static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs 
     buf->f_ffree = 0xffffffff;
 
     // File system id
-    buf->f_fsid = (int)dev;
+    buf->f_fsid = (int) dev;
 
     // Bit mask of f_flag values.
     buf->f_flag = 0;
@@ -699,20 +663,19 @@ static int fs_dev_statvfs_r (struct _reent *r, const char *path, struct statvfs 
     return 0;
 }
 
-static DIR_ITER *fs_dev_diropen_r (struct _reent *r, DIR_ITER *dirState, const char *path)
-{
+static DIR_ITER *fs_dev_diropen_r(struct _reent *r, DIR_ITER *dirState, const char *path) {
     fs_dev_private_t *dev = fs_dev_get_device_data(path);
-    if(!dev) {
+    if (!dev) {
         r->_errno = ENODEV;
         return NULL;
     }
 
-    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *)dirState->dirStruct;
+    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *) dirState->dirStruct;
 
     OSLockMutex(dev->pMutex);
 
     char *real_path = fs_dev_real_path(path, dev);
-    if(!real_path) {
+    if (!real_path) {
         r->_errno = ENOMEM;
         OSUnlockMutex(dev->pMutex);
         return NULL;
@@ -726,8 +689,7 @@ static DIR_ITER *fs_dev_diropen_r (struct _reent *r, DIR_ITER *dirState, const c
 
     OSUnlockMutex(dev->pMutex);
 
-    if(result < 0)
-    {
+    if (result < 0) {
         r->_errno = result;
         return NULL;
     }
@@ -738,10 +700,9 @@ static DIR_ITER *fs_dev_diropen_r (struct _reent *r, DIR_ITER *dirState, const c
     return dirState;
 }
 
-static int fs_dev_dirclose_r (struct _reent *r, DIR_ITER *dirState)
-{
-    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *)dirState->dirStruct;
-    if(!dirIter->dev) {
+static int fs_dev_dirclose_r(struct _reent *r, DIR_ITER *dirState) {
+    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *) dirState->dirStruct;
+    if (!dirIter->dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -752,18 +713,16 @@ static int fs_dev_dirclose_r (struct _reent *r, DIR_ITER *dirState)
 
     OSUnlockMutex(dirIter->dev->pMutex);
 
-    if(result < 0)
-    {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
     return 0;
 }
 
-static int fs_dev_dirreset_r (struct _reent *r, DIR_ITER *dirState)
-{
-    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *)dirState->dirStruct;
-    if(!dirIter->dev) {
+static int fs_dev_dirreset_r(struct _reent *r, DIR_ITER *dirState) {
+    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *) dirState->dirStruct;
+    if (!dirIter->dev) {
         r->_errno = ENODEV;
         return -1;
     }
@@ -774,29 +733,26 @@ static int fs_dev_dirreset_r (struct _reent *r, DIR_ITER *dirState)
 
     OSUnlockMutex(dirIter->dev->pMutex);
 
-    if(result < 0)
-    {
+    if (result < 0) {
         r->_errno = result;
         return -1;
     }
     return 0;
 }
 
-static int fs_dev_dirnext_r (struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *st)
-{
-    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *)dirState->dirStruct;
-    if(!dirIter->dev) {
+static int fs_dev_dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename, struct stat *st) {
+    fs_dev_dir_entry_t *dirIter = (fs_dev_dir_entry_t *) dirState->dirStruct;
+    if (!dirIter->dev) {
         r->_errno = ENODEV;
         return -1;
     }
 
     OSLockMutex(dirIter->dev->pMutex);
 
-    directoryEntry_s * dir_entry = malloc(sizeof(directoryEntry_s));
+    directoryEntry_s *dir_entry = malloc(sizeof(directoryEntry_s));
 
     int result = IOSUHAX_FSA_ReadDir(dirIter->dev->fsaFd, dirIter->dirHandle, dir_entry);
-    if(result < 0)
-    {
+    if (result < 0) {
         free(dir_entry);
         r->_errno = result;
         OSUnlockMutex(dirIter->dev->pMutex);
@@ -806,8 +762,7 @@ static int fs_dev_dirnext_r (struct _reent *r, DIR_ITER *dirState, char *filenam
     // Fetch the current entry
     strcpy(filename, dir_entry->name);
 
-    if(st)
-    {
+    if (st) {
         memset(st, 0, sizeof(struct stat));
         st->st_mode = (dir_entry->stat.flag & 0x80000000) ? S_IFDIR : S_IFREG;
         st->st_nlink = 1;
@@ -829,35 +784,34 @@ static int fs_dev_dirnext_r (struct _reent *r, DIR_ITER *dirState, char *filenam
 
 // NTFS device driver devoptab
 static const devoptab_t devops_fs = {
-    NULL, /* Device name */
-    sizeof (fs_dev_file_state_t),
-    fs_dev_open_r,
-    fs_dev_close_r,
-    fs_dev_write_r,
-    fs_dev_read_r,
-    fs_dev_seek_r,
-    fs_dev_fstat_r,
-    fs_dev_stat_r,
-    fs_dev_link_r,
-    fs_dev_unlink_r,
-    fs_dev_chdir_r,
-    fs_dev_rename_r,
-    fs_dev_mkdir_r,
-    sizeof (fs_dev_dir_entry_t),
-    fs_dev_diropen_r,
-    fs_dev_dirreset_r,
-    fs_dev_dirnext_r,
-    fs_dev_dirclose_r,
-    fs_dev_statvfs_r,
-    fs_dev_ftruncate_r,
-    fs_dev_fsync_r,
-    fs_dev_chmod_r,
-    NULL, /* fs_dev_fchmod_r */
-    NULL  /* Device data */
+        NULL, /* Device name */
+        sizeof(fs_dev_file_state_t),
+        fs_dev_open_r,
+        fs_dev_close_r,
+        fs_dev_write_r,
+        fs_dev_read_r,
+        fs_dev_seek_r,
+        fs_dev_fstat_r,
+        fs_dev_stat_r,
+        fs_dev_link_r,
+        fs_dev_unlink_r,
+        fs_dev_chdir_r,
+        fs_dev_rename_r,
+        fs_dev_mkdir_r,
+        sizeof(fs_dev_dir_entry_t),
+        fs_dev_diropen_r,
+        fs_dev_dirreset_r,
+        fs_dev_dirnext_r,
+        fs_dev_dirclose_r,
+        fs_dev_statvfs_r,
+        fs_dev_ftruncate_r,
+        fs_dev_fsync_r,
+        fs_dev_chmod_r,
+        NULL, /* fs_dev_fchmod_r */
+        NULL  /* Device data */
 };
 
-static int fs_dev_add_device (const char *name, const char *mount_path, int fsaFd, int isMounted)
-{
+static int fs_dev_add_device(const char *name, const char *mount_path, int fsaFd, int isMounted) {
     devoptab_t *dev = NULL;
     char *devname = NULL;
     char *devpath = NULL;
@@ -877,18 +831,18 @@ static int fs_dev_add_device (const char *name, const char *mount_path, int fsaF
     }
 
     // Use the space allocated at the end of the devoptab for storing the device name
-    devname = (char*)(dev + 1);
+    devname = (char *) (dev + 1);
     strcpy(devname, name);
 
     // create private data
-    fs_dev_private_t *priv = (fs_dev_private_t *)malloc(sizeof(fs_dev_private_t) + strlen(mount_path) + 1);
-    if(!priv) {
+    fs_dev_private_t *priv = (fs_dev_private_t *) malloc(sizeof(fs_dev_private_t) + strlen(mount_path) + 1);
+    if (!priv) {
         free(dev);
         errno = ENOMEM;
         return -1;
     }
 
-    devpath = (char*)(priv+1);
+    devpath = (char *) (priv + 1);
     strcpy(devpath, mount_path);
 
     // setup private data
@@ -897,7 +851,7 @@ static int fs_dev_add_device (const char *name, const char *mount_path, int fsaF
     priv->mounted = isMounted;
     priv->pMutex = malloc(OS_MUTEX_SIZE);
 
-    if(!priv->pMutex) {
+    if (!priv->pMutex) {
         free(dev);
         free(priv);
         errno = ENOMEM;
@@ -928,8 +882,7 @@ static int fs_dev_add_device (const char *name, const char *mount_path, int fsaF
     return -1;
 }
 
-static int fs_dev_remove_device (const char *path)
-{
+static int fs_dev_remove_device(const char *path) {
     const devoptab_t *devoptab = NULL;
     char name[128] = {0};
     int i;
@@ -948,19 +901,18 @@ static int fs_dev_remove_device (const char *path)
             if (strcmp(name, devoptab->name) == 0) {
                 devoptab_list[i] = devoptab_list[0];
 
-                if(devoptab->deviceData)
-                {
-                    fs_dev_private_t *priv = (fs_dev_private_t *)devoptab->deviceData;
+                if (devoptab->deviceData) {
+                    fs_dev_private_t *priv = (fs_dev_private_t *) devoptab->deviceData;
 
-                    if(priv->mounted)
+                    if (priv->mounted)
                         IOSUHAX_FSA_Unmount(priv->fsaFd, priv->mount_path, 2);
 
-                    if(priv->pMutex)
+                    if (priv->pMutex)
                         free(priv->pMutex);
                     free(devoptab->deviceData);
                 }
 
-                free((devoptab_t*)devoptab);
+                free((devoptab_t *) devoptab);
                 return 0;
             }
         }
@@ -969,17 +921,14 @@ static int fs_dev_remove_device (const char *path)
     return -1;
 }
 
-int mount_fs(const char *virt_name, int fsaFd, const char *dev_path, const char *mount_path)
-{
+int mount_fs(const char *virt_name, int fsaFd, const char *dev_path, const char *mount_path) {
     int isMounted = 0;
 
-    if(dev_path)
-    {
+    if (dev_path) {
         isMounted = 1;
 
         int res = IOSUHAX_FSA_Mount(fsaFd, dev_path, mount_path, 2, 0, 0);
-        if(res != 0)
-        {
+        if (res != 0) {
             return res;
         }
     }
@@ -987,7 +936,6 @@ int mount_fs(const char *virt_name, int fsaFd, const char *dev_path, const char 
     return fs_dev_add_device(virt_name, mount_path, fsaFd, isMounted);
 }
 
-int unmount_fs(const char *virt_name)
-{
+int unmount_fs(const char *virt_name) {
     return fs_dev_remove_device(virt_name);
 }

@@ -42,25 +42,30 @@ typedef uint32_t sec_t;
 #define FEATURE_MEDIUM_CANREAD      0x00000001
 #define FEATURE_MEDIUM_CANWRITE     0x00000002
 
-typedef bool (* FN_MEDIUM_STARTUP)(void) ;
-typedef bool (* FN_MEDIUM_ISINSERTED)(void) ;
-typedef bool (* FN_MEDIUM_READSECTORS)(uint32_t sector, uint32_t numSectors, void* buffer) ;
-typedef bool (* FN_MEDIUM_WRITESECTORS)(uint32_t sector, uint32_t numSectors, const void* buffer) ;
-typedef bool (* FN_MEDIUM_CLEARSTATUS)(void) ;
-typedef bool (* FN_MEDIUM_SHUTDOWN)(void) ;
+typedef bool (*FN_MEDIUM_STARTUP)(void);
+
+typedef bool (*FN_MEDIUM_ISINSERTED)(void);
+
+typedef bool (*FN_MEDIUM_READSECTORS)(uint32_t sector, uint32_t numSectors, void *buffer);
+
+typedef bool (*FN_MEDIUM_WRITESECTORS)(uint32_t sector, uint32_t numSectors, const void *buffer);
+
+typedef bool (*FN_MEDIUM_CLEARSTATUS)(void);
+
+typedef bool (*FN_MEDIUM_SHUTDOWN)(void);
 
 struct DISC_INTERFACE_STRUCT {
-	unsigned long			ioType ;
-	unsigned long			features ;
-	FN_MEDIUM_STARTUP		startup ;
-	FN_MEDIUM_ISINSERTED	isInserted ;
-	FN_MEDIUM_READSECTORS	readSectors ;
-	FN_MEDIUM_WRITESECTORS	writeSectors ;
-	FN_MEDIUM_CLEARSTATUS	clearStatus ;
-	FN_MEDIUM_SHUTDOWN		shutdown ;
-} ;
+    unsigned long ioType;
+    unsigned long features;
+    FN_MEDIUM_STARTUP startup;
+    FN_MEDIUM_ISINSERTED isInserted;
+    FN_MEDIUM_READSECTORS readSectors;
+    FN_MEDIUM_WRITESECTORS writeSectors;
+    FN_MEDIUM_CLEARSTATUS clearStatus;
+    FN_MEDIUM_SHUTDOWN shutdown;
+};
 
-typedef struct DISC_INTERFACE_STRUCT DISC_INTERFACE ;
+typedef struct DISC_INTERFACE_STRUCT DISC_INTERFACE;
 #endif
 
 extern const DISC_INTERFACE IOSUHAX_sdio_disc_interface;

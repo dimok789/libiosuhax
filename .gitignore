@@ -3,3 +3,6 @@
 *.bz2
 release/
 lib/
+.idea/
+cmake-build-debug/
+CMakeLists.txt

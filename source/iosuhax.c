@@ -35,6 +35,7 @@
 #define IOCTL_REPEATED_WRITE        0x05
 #define IOCTL_KERN_READ32           0x06
 #define IOCTL_KERN_WRITE32          0x07
+#define IOCTL_READ_OTP              0x08
 
 #define IOCTL_FSA_OPEN              0x40
 #define IOCTL_FSA_CLOSE             0x41
@@ -115,6 +116,26 @@ int IOSUHAX_memwrite(uint32_t address, const uint8_t *buffer, uint32_t size) {
     return res;
 }
 
+int IOSUHAX_ODM_GetDiscKey(uint8_t * discKey){
+    int res = -1;
+    if(discKey == NULL){
+        return -2;
+    }
+    int odm_handle = IOS_Open("/dev/odm", 1);
+    res = odm_handle;
+    if (odm_handle >= 0) {
+        uint32_t io_buffer[0x20 / 4];
+        // disc encryption key, only works with patched IOSU
+        io_buffer[0] = 3;
+        res = IOS_Ioctl(odm_handle, 0x06, io_buffer, 0x14, io_buffer, 0x20);
+        if (res == 0) {
+            memcpy(discKey, io_buffer, 16);
+        }
+        IOS_Close(odm_handle);
+    }
+    return res;
+}
+
 int IOSUHAX_memread(uint32_t address, uint8_t *out_buffer, uint32_t size) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
@@ -160,6 +181,22 @@ int IOSUHAX_kern_write32(uint32_t address, uint32_t value) {
     io_buf[1] = value;
 
     return IOS_Ioctl(iosuhaxHandle, IOCTL_KERN_WRITE32, io_buf, 2 * sizeof(uint32_t), 0, 0);
+}
+
+int IOSUHAX_read_otp(uint8_t * out_buffer, uint32_t size) {
+    if (iosuhaxHandle < 0) {
+        return iosuhaxHandle;
+    }
+
+    ALIGN(0x20) uint32_t io_buf[0x400 >> 2];
+
+    int res = IOS_Ioctl(iosuhaxHandle, IOCTL_READ_OTP, 0, 0, io_buf, 0x400);
+
+    if (res >= 0){
+        memcpy(out_buffer, io_buf, size > 0x400 ? 0x400 : size);
+    }
+
+    return res;
 }
 
 int IOSUHAX_kern_read32(uint32_t address, uint32_t *out_buffer, uint32_t count) {

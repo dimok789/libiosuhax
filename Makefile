@@ -11,7 +11,7 @@ TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/wut/share/wut_rules
 
 export VER_MAJOR	:=	1
-export VER_MINOR	:=	0
+export VER_MINOR	:=	1
 export VER_PATCH	:=	0
 
 VERSION	:=	$(VER_MAJOR).$(VER_MINOR).$(VER_PATCH)

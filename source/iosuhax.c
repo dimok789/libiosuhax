@@ -199,6 +199,37 @@ int IOSUHAX_read_otp(uint8_t * out_buffer, uint32_t size) {
     return res;
 }
 
+extern int bspRead(const char*, uint32_t, const char*, uint32_t, uint16_t*);
+
+int IOSUHAX_read_seeprom(uint8_t * out_buffer, uint32_t offset, uint32_t size) {
+    if(out_buffer == NULL || offset > 0x200 || offset & 0x01) {
+        return -1;
+    }    
+
+    uint32_t sizeInShorts = size >> 1;
+    uint32_t offsetInShorts = offset >> 1;
+    int32_t maxReadCount = 0x100 - offsetInShorts;
+
+    if(maxReadCount <= 0){
+        return 0;
+    }
+
+    uint32_t count = sizeInShorts > maxReadCount ? maxReadCount : sizeInShorts;
+    uint16_t *ptr = (uint16_t *) out_buffer;  
+
+    int res = 0;
+
+    for(int i = 0; i < count; i++) {
+        if(bspRead("EE", offsetInShorts + i, "access", 2, ptr) != 0) {
+            return -2;
+        }
+        res += 2;
+        ptr++;
+    }
+
+    return res;
+}
+
 int IOSUHAX_kern_read32(uint32_t address, uint32_t *out_buffer, uint32_t count) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;

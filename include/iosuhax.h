@@ -72,6 +72,8 @@ int IOSUHAX_kern_read32(uint32_t address, uint32_t *out_buffer, uint32_t count);
 
 int IOSUHAX_read_otp(uint8_t * out_buffer, uint32_t size);
 
+int IOSUHAX_read_seeprom(uint8_t * out_buffer, uint32_t offset, uint32_t size);
+
 int IOSUHAX_ODM_GetDiscKey(uint8_t * discKey);
 
 int IOSUHAX_SVC(uint32_t svc_id, uint32_t *args, uint32_t arg_cnt);

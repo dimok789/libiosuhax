@@ -29,18 +29,18 @@
 extern "C" {
 #endif
 
-#define IOS_ERROR_UNKNOWN_VALUE     0xFFFFFFD6
-#define IOS_ERROR_INVALID_ARG       0xFFFFFFE3
-#define IOS_ERROR_INVALID_SIZE      0xFFFFFFE9
-#define IOS_ERROR_UNKNOWN           0xFFFFFFF7
-#define IOS_ERROR_NOEXISTS          0xFFFFFFFA
+#define IOS_ERROR_UNKNOWN_VALUE 0xFFFFFFD6
+#define IOS_ERROR_INVALID_ARG   0xFFFFFFE3
+#define IOS_ERROR_INVALID_SIZE  0xFFFFFFE9
+#define IOS_ERROR_UNKNOWN       0xFFFFFFF7
+#define IOS_ERROR_NOEXISTS      0xFFFFFFFA
 
 typedef struct {
     uint32_t flag;
     uint32_t permission;
     uint32_t owner_id;
     uint32_t group_id;
-    uint32_t size; // size in bytes
+    uint32_t size;     // size in bytes
     uint32_t physsize; // physical size on disk in bytes
     uint32_t unk[3];
     uint32_t id;
@@ -54,27 +54,27 @@ typedef struct {
     char name[0x100];
 } directoryEntry_s;
 
-#define DIR_ENTRY_IS_DIRECTORY      0x80000000
+#define DIR_ENTRY_IS_DIRECTORY   0x80000000
 
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
-#define FSA_MOUNTFLAGS_GLOBAL (1 << 1)
+#define FSA_MOUNTFLAGS_GLOBAL    (1 << 1)
 
-int IOSUHAX_Open(const char *dev);  // if dev == NULL the default path /dev/iosuhax will be used
+int IOSUHAX_Open(const char *dev); // if dev == NULL the default path /dev/iosuhax will be used
 int IOSUHAX_Close(void);
 
 int IOSUHAX_memwrite(uint32_t address, const uint8_t *buffer, uint32_t size); // IOSU external input
 int IOSUHAX_memread(uint32_t address, uint8_t *out_buffer, uint32_t size);    // IOSU external output
-int IOSUHAX_memcpy(uint32_t dst, uint32_t src, uint32_t size);                 // IOSU internal memcpy only
+int IOSUHAX_memcpy(uint32_t dst, uint32_t src, uint32_t size);                // IOSU internal memcpy only
 
 int IOSUHAX_kern_write32(uint32_t address, uint32_t value);
 
 int IOSUHAX_kern_read32(uint32_t address, uint32_t *out_buffer, uint32_t count);
 
-int IOSUHAX_read_otp(uint8_t * out_buffer, uint32_t size);
+int IOSUHAX_read_otp(uint8_t *out_buffer, uint32_t size);
 
-int IOSUHAX_read_seeprom(uint8_t * out_buffer, uint32_t offset, uint32_t size);
+int IOSUHAX_read_seeprom(uint8_t *out_buffer, uint32_t offset, uint32_t size);
 
-int IOSUHAX_ODM_GetDiscKey(uint8_t * discKey);
+int IOSUHAX_ODM_GetDiscKey(uint8_t *discKey);
 
 int IOSUHAX_SVC(uint32_t svc_id, uint32_t *args, uint32_t arg_cnt);
 

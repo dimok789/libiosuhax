@@ -21,13 +21,13 @@
  * 3. This notice may not be removed or altered from any source
  * distribution.
  ***************************************************************************/
-#include <string.h>
-#include <malloc.h>
-#include "iosuhax.h"
 #include "iosuhax_disc_interface.h"
+#include "iosuhax.h"
+#include <malloc.h>
+#include <string.h>
 
-#define FSA_REF_SD      0x01
-#define FSA_REF_USB     0x02
+#define FSA_REF_SD  0x01
+#define FSA_REF_USB 0x02
 
 static int initialized = 0;
 
@@ -152,8 +152,7 @@ const DISC_INTERFACE IOSUHAX_sdio_disc_interface =
                 IOSUHAX_sdio_readSectors,
                 IOSUHAX_sdio_writeSectors,
                 IOSUHAX_sdio_clearStatus,
-                IOSUHAX_sdio_shutdown
-        };
+                IOSUHAX_sdio_shutdown};
 
 static bool IOSUHAX_usb_startup(void) {
     if (!IOSUHAX_disc_io_fsa_open(FSA_REF_USB))
@@ -223,5 +222,4 @@ const DISC_INTERFACE IOSUHAX_usb_disc_interface =
                 IOSUHAX_usb_readSectors,
                 IOSUHAX_usb_writeSectors,
                 IOSUHAX_usb_clearStatus,
-                IOSUHAX_usb_shutdown
-        };
+                IOSUHAX_usb_shutdown};

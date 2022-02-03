@@ -95,7 +95,7 @@ int IOSUHAX_Close(void) {
     if (iosuhaxHandle < 0)
         return 0;
 
-    int res = IOS_Close(iosuhaxHandle);
+    int res       = IOS_Close(iosuhaxHandle);
     iosuhaxHandle = -1;
     return res;
 }
@@ -123,12 +123,12 @@ int IOSUHAX_ODM_GetDiscKey(uint8_t *discKey) {
         return -2;
     }
     int odm_handle = IOS_Open("/dev/odm", 1);
-    res = odm_handle;
+    res            = odm_handle;
     if (odm_handle >= 0) {
         uint32_t io_buffer[0x20 / 4];
         // disc encryption key, only works with patched IOSU
         io_buffer[0] = 3;
-        res = IOS_Ioctl(odm_handle, 0x06, io_buffer, 0x14, io_buffer, 0x20);
+        res          = IOS_Ioctl(odm_handle, 0x06, io_buffer, 0x14, io_buffer, 0x20);
         if (res == 0) {
             memcpy(discKey, io_buffer, 16);
         }
@@ -207,16 +207,16 @@ int IOSUHAX_read_seeprom(uint8_t *out_buffer, uint32_t offset, uint32_t size) {
         return -1;
     }
 
-    uint32_t sizeInShorts = size >> 1;
+    uint32_t sizeInShorts   = size >> 1;
     uint32_t offsetInShorts = offset >> 1;
-    int32_t maxReadCount = 0x100 - offsetInShorts;
+    int32_t maxReadCount    = 0x100 - offsetInShorts;
 
     if (maxReadCount <= 0) {
         return 0;
     }
 
     uint32_t count = sizeInShorts > maxReadCount ? maxReadCount : sizeInShorts;
-    uint16_t *ptr = (uint16_t *) out_buffer;
+    uint16_t *ptr  = (uint16_t *) out_buffer;
 
     int res = 0;
 
@@ -703,7 +703,7 @@ int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s *out_data) {
     io_buf[0] = fsaFd;
     io_buf[1] = fileHandle;
 
-    int out_buf_size = 4 + sizeof(fileStat_s);
+    int out_buf_size     = 4 + sizeof(fileStat_s);
     uint32_t *out_buffer = (uint32_t *) memalign(0x20, out_buf_size);
     if (!out_buffer) {
         free(io_buf);
@@ -796,7 +796,7 @@ int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, fileStat_s *out_data) {
     io_buf[1] = sizeof(uint32_t) * input_cnt;
     strcpy(((char *) io_buf) + io_buf[1], path);
 
-    int out_buf_size = 4 + sizeof(fileStat_s);
+    int out_buf_size     = 4 + sizeof(fileStat_s);
     uint32_t *out_buffer = (uint32_t *) memalign(0x20, out_buf_size);
     if (!out_buffer) {
         free(io_buf);
@@ -894,7 +894,7 @@ int IOSUHAX_FSA_RawRead(int fsaFd, void *data, uint32_t block_size, uint32_t blo
 
     const int input_cnt = 6;
 
-    int io_buf_size = 0x40 + block_size * block_cnt;
+    int io_buf_size  = 0x40 + block_size * block_cnt;
     uint32_t *io_buf = (uint32_t *) memalign(0x40, ROUNDUP(io_buf_size, 0x40));
 
     if (!io_buf)

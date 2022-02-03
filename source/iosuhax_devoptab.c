@@ -60,7 +60,7 @@ typedef struct _fs_dev_dir_entry_t {
 
 static fs_dev_private_t *fs_dev_get_device_data(const char *path) {
     const devoptab_t *devoptab = NULL;
-    char name[128] = {0};
+    char name[128]             = {0};
     int i;
 
     // Get the device name from the path
@@ -121,35 +121,35 @@ static int fs_dev_open_r(struct _reent *r, void *fileStruct, const char *path, i
 
     // Map flags to open modes
     if (flags == 0) {
-        file->read = 1;
-        file->write = 0;
+        file->read   = 1;
+        file->write  = 0;
         file->append = 0;
-        fsMode = "r";
+        fsMode       = "r";
     } else if (flags == 2) {
-        file->read = 1;
-        file->write = 1;
+        file->read   = 1;
+        file->write  = 1;
         file->append = 0;
-        fsMode = "r+";
+        fsMode       = "r+";
     } else if (flags == 0x601) {
-        file->read = 0;
-        file->write = 1;
+        file->read   = 0;
+        file->write  = 1;
         file->append = 0;
-        fsMode = "w";
+        fsMode       = "w";
     } else if (flags == 0x602) {
-        file->read = 1;
-        file->write = 1;
+        file->read   = 1;
+        file->write  = 1;
         file->append = 0;
-        fsMode = "w+";
+        fsMode       = "w+";
     } else if (flags == 0x209) {
-        file->read = 0;
-        file->write = 1;
+        file->read   = 0;
+        file->write  = 1;
         file->append = 1;
-        fsMode = "a";
+        fsMode       = "a";
     } else if (flags == 0x20A) {
-        file->read = 1;
-        file->write = 1;
+        file->read   = 1;
+        file->write  = 1;
         file->append = 1;
-        fsMode = "a+";
+        fsMode       = "a+";
     } else {
         r->_errno = EINVAL;
         return -1;
@@ -180,7 +180,7 @@ static int fs_dev_open_r(struct _reent *r, void *fileStruct, const char *path, i
             OSUnlockMutex(dev->pMutex);
             return -1;
         }
-        file->fd = fd;
+        file->fd  = fd;
         file->pos = 0;
         file->len = stats.size;
         OSUnlockMutex(dev->pMutex);
@@ -307,7 +307,7 @@ static ssize_t fs_dev_read_r(struct _reent *r, void *fd, char *ptr, size_t len) 
         int result = IOSUHAX_FSA_ReadFile(file->dev->fsaFd, ptr + done, 0x01, read_size, file->fd, 0);
         if (result < 0) {
             r->_errno = result;
-            done = 0;
+            done      = 0;
             break;
         } else if (result == 0) {
             //! TODO: error on read_size > 0
@@ -343,16 +343,16 @@ static int fs_dev_fstat_r(struct _reent *r, void *fd, struct stat *st) {
         return -1;
     }
 
-    st->st_mode = S_IFREG;
-    st->st_size = stats.size;
+    st->st_mode   = S_IFREG;
+    st->st_size   = stats.size;
     st->st_blocks = (stats.size + 511) >> 9;
-    st->st_nlink = 1;
+    st->st_nlink  = 1;
 
     // Fill in the generic entry stats
-    st->st_dev = stats.id;
-    st->st_uid = stats.owner_id;
-    st->st_gid = stats.group_id;
-    st->st_ino = stats.id;
+    st->st_dev   = stats.id;
+    st->st_uid   = stats.owner_id;
+    st->st_gid   = stats.group_id;
+    st->st_ino   = stats.id;
     st->st_atime = stats.mtime;
     st->st_ctime = stats.ctime;
     st->st_mtime = stats.mtime;
@@ -416,15 +416,15 @@ static int fs_dev_stat_r(struct _reent *r, const char *path, struct stat *st) {
     }
 
     // mark root also as directory
-    st->st_mode = ((stats.flag & 0x80000000) || (strlen(dev->mount_path) + 1 == strlen(real_path))) ? S_IFDIR : S_IFREG;
-    st->st_nlink = 1;
-    st->st_size = stats.size;
+    st->st_mode   = ((stats.flag & 0x80000000) || (strlen(dev->mount_path) + 1 == strlen(real_path))) ? S_IFDIR : S_IFREG;
+    st->st_nlink  = 1;
+    st->st_size   = stats.size;
     st->st_blocks = (stats.size + 511) >> 9;
     // Fill in the generic entry stats
-    st->st_dev = stats.id;
-    st->st_uid = stats.owner_id;
-    st->st_gid = stats.group_id;
-    st->st_ino = stats.id;
+    st->st_dev   = stats.id;
+    st->st_uid   = stats.owner_id;
+    st->st_gid   = stats.group_id;
+    st->st_ino   = stats.id;
     st->st_atime = stats.mtime;
     st->st_ctime = stats.ctime;
     st->st_mtime = stats.mtime;
@@ -692,7 +692,7 @@ static DIR_ITER *fs_dev_diropen_r(struct _reent *r, DIR_ITER *dirState, const ch
         return NULL;
     }
 
-    dirIter->dev = dev;
+    dirIter->dev       = dev;
     dirIter->dirHandle = dirHandle;
 
     return dirState;
@@ -762,17 +762,17 @@ static int fs_dev_dirnext_r(struct _reent *r, DIR_ITER *dirState, char *filename
 
     if (st) {
         memset(st, 0, sizeof(struct stat));
-        st->st_mode = (dir_entry->stat.flag & 0x80000000) ? S_IFDIR : S_IFREG;
-        st->st_nlink = 1;
-        st->st_size = dir_entry->stat.size;
+        st->st_mode   = (dir_entry->stat.flag & 0x80000000) ? S_IFDIR : S_IFREG;
+        st->st_nlink  = 1;
+        st->st_size   = dir_entry->stat.size;
         st->st_blocks = (dir_entry->stat.size + 511) >> 9;
-        st->st_dev = dir_entry->stat.id;
-        st->st_uid = dir_entry->stat.owner_id;
-        st->st_gid = dir_entry->stat.group_id;
-        st->st_ino = dir_entry->stat.id;
-        st->st_atime = dir_entry->stat.mtime;
-        st->st_ctime = dir_entry->stat.ctime;
-        st->st_mtime = dir_entry->stat.mtime;
+        st->st_dev    = dir_entry->stat.id;
+        st->st_uid    = dir_entry->stat.owner_id;
+        st->st_gid    = dir_entry->stat.group_id;
+        st->st_ino    = dir_entry->stat.id;
+        st->st_atime  = dir_entry->stat.mtime;
+        st->st_ctime  = dir_entry->stat.ctime;
+        st->st_mtime  = dir_entry->stat.mtime;
     }
 
     free(dir_entry);
@@ -811,8 +811,8 @@ static const devoptab_t devops_fs = {
 
 static int fs_dev_add_device(const char *name, const char *mount_path, int fsaFd, int isMounted) {
     devoptab_t *dev = NULL;
-    char *devname = NULL;
-    char *devpath = NULL;
+    char *devname   = NULL;
+    char *devpath   = NULL;
     int i;
 
     // Sanity check
@@ -845,9 +845,9 @@ static int fs_dev_add_device(const char *name, const char *mount_path, int fsaFd
 
     // setup private data
     priv->mount_path = devpath;
-    priv->fsaFd = fsaFd;
-    priv->mounted = isMounted;
-    priv->pMutex = malloc(OS_MUTEX_SIZE);
+    priv->fsaFd      = fsaFd;
+    priv->mounted    = isMounted;
+    priv->pMutex     = malloc(OS_MUTEX_SIZE);
 
     if (!priv->pMutex) {
         free(dev);
@@ -860,7 +860,7 @@ static int fs_dev_add_device(const char *name, const char *mount_path, int fsaFd
 
     // Setup the devoptab
     memcpy(dev, &devops_fs, sizeof(devoptab_t));
-    dev->name = devname;
+    dev->name       = devname;
     dev->deviceData = priv;
 
     // Add the device to the devoptab table (if there is a free slot)
@@ -882,7 +882,7 @@ static int fs_dev_add_device(const char *name, const char *mount_path, int fsaFd
 
 static int fs_dev_remove_device(const char *path) {
     const devoptab_t *devoptab = NULL;
-    char name[128] = {0};
+    char name[128]             = {0};
     int i;
 
     // Get the device name from the path

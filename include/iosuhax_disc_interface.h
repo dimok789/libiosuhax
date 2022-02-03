@@ -24,23 +24,23 @@
 #ifndef _IOSUHAX_DISC_INTERFACE_H_
 #define _IOSUHAX_DISC_INTERFACE_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define DEVICE_TYPE_WII_U_SD        (('W'<<24)|('U'<<16)|('S'<<8)|'D')
-#define DEVICE_TYPE_WII_U_USB       (('W'<<24)|('U'<<16)|('S'<<8)|'B')
-#define FEATURE_WII_U_SD            0x00001000
-#define FEATURE_WII_U_USB           0x00002000
+#define DEVICE_TYPE_WII_U_SD  (('W' << 24) | ('U' << 16) | ('S' << 8) | 'D')
+#define DEVICE_TYPE_WII_U_USB (('W' << 24) | ('U' << 16) | ('S' << 8) | 'B')
+#define FEATURE_WII_U_SD      0x00001000
+#define FEATURE_WII_U_USB     0x00002000
 
 #ifndef OGC_DISC_IO_INCLUDE
 typedef uint32_t sec_t;
 
-#define FEATURE_MEDIUM_CANREAD      0x00000001
-#define FEATURE_MEDIUM_CANWRITE     0x00000002
+#define FEATURE_MEDIUM_CANREAD  0x00000001
+#define FEATURE_MEDIUM_CANWRITE 0x00000002
 
 typedef bool (*FN_MEDIUM_STARTUP)(void);
 

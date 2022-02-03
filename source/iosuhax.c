@@ -21,54 +21,55 @@
  * 3. This notice may not be removed or altered from any source
  * distribution.
  ***************************************************************************/
-#include <string.h>
-#include <malloc.h>
-#include "os_functions.h"
 #include "iosuhax.h"
+#include "os_functions.h"
+#include <malloc.h>
+#include <string.h>
 
-#define IOSUHAX_MAGIC_WORD          0x4E696365
+#define IOSUHAX_MAGIC_WORD      0x4E696365
 
-#define IOCTL_MEM_WRITE             0x00
-#define IOCTL_MEM_READ              0x01
-#define IOCTL_SVC                   0x02
-#define IOCTL_MEMCPY                0x04
-#define IOCTL_REPEATED_WRITE        0x05
-#define IOCTL_KERN_READ32           0x06
-#define IOCTL_KERN_WRITE32          0x07
-#define IOCTL_READ_OTP              0x08
+#define IOCTL_MEM_WRITE         0x00
+#define IOCTL_MEM_READ          0x01
+#define IOCTL_SVC               0x02
+#define IOCTL_MEMCPY            0x04
+#define IOCTL_REPEATED_WRITE    0x05
+#define IOCTL_KERN_READ32       0x06
+#define IOCTL_KERN_WRITE32      0x07
+#define IOCTL_READ_OTP          0x08
 
-#define IOCTL_FSA_OPEN              0x40
-#define IOCTL_FSA_CLOSE             0x41
-#define IOCTL_FSA_MOUNT             0x42
-#define IOCTL_FSA_UNMOUNT           0x43
-#define IOCTL_FSA_GETDEVICEINFO     0x44
-#define IOCTL_FSA_OPENDIR           0x45
-#define IOCTL_FSA_READDIR           0x46
-#define IOCTL_FSA_CLOSEDIR          0x47
-#define IOCTL_FSA_MAKEDIR           0x48
-#define IOCTL_FSA_OPENFILE          0x49
-#define IOCTL_FSA_READFILE          0x4A
-#define IOCTL_FSA_WRITEFILE         0x4B
-#define IOCTL_FSA_STATFILE          0x4C
-#define IOCTL_FSA_CLOSEFILE         0x4D
-#define IOCTL_FSA_SETFILEPOS        0x4E
-#define IOCTL_FSA_GETSTAT           0x4F
-#define IOCTL_FSA_REMOVE            0x50
-#define IOCTL_FSA_REWINDDIR         0x51
-#define IOCTL_FSA_CHDIR             0x52
-#define IOCTL_FSA_RENAME            0x53
-#define IOCTL_FSA_RAW_OPEN          0x54
-#define IOCTL_FSA_RAW_READ          0x55
-#define IOCTL_FSA_RAW_WRITE         0x56
-#define IOCTL_FSA_RAW_CLOSE         0x57
-#define IOCTL_FSA_CHANGEMODE        0x58
-#define IOCTL_FSA_FLUSHVOLUME       0x59
-#define IOCTL_CHECK_IF_IOSUHAX      0x5B
+#define IOCTL_FSA_OPEN          0x40
+#define IOCTL_FSA_CLOSE         0x41
+#define IOCTL_FSA_MOUNT         0x42
+#define IOCTL_FSA_UNMOUNT       0x43
+#define IOCTL_FSA_GETDEVICEINFO 0x44
+#define IOCTL_FSA_OPENDIR       0x45
+#define IOCTL_FSA_READDIR       0x46
+#define IOCTL_FSA_CLOSEDIR      0x47
+#define IOCTL_FSA_MAKEDIR       0x48
+#define IOCTL_FSA_OPENFILE      0x49
+#define IOCTL_FSA_READFILE      0x4A
+#define IOCTL_FSA_WRITEFILE     0x4B
+#define IOCTL_FSA_STATFILE      0x4C
+#define IOCTL_FSA_CLOSEFILE     0x4D
+#define IOCTL_FSA_SETFILEPOS    0x4E
+#define IOCTL_FSA_GETSTAT       0x4F
+#define IOCTL_FSA_REMOVE        0x50
+#define IOCTL_FSA_REWINDDIR     0x51
+#define IOCTL_FSA_CHDIR         0x52
+#define IOCTL_FSA_RENAME        0x53
+#define IOCTL_FSA_RAW_OPEN      0x54
+#define IOCTL_FSA_RAW_READ      0x55
+#define IOCTL_FSA_RAW_WRITE     0x56
+#define IOCTL_FSA_RAW_CLOSE     0x57
+#define IOCTL_FSA_CHANGEMODE    0x58
+#define IOCTL_FSA_FLUSHVOLUME   0x59
+#define IOCTL_CHECK_IF_IOSUHAX  0x5B
 
 static int iosuhaxHandle = -1;
 
-#define ALIGN(align)       __attribute__((aligned(align)))
-#define ROUNDUP(x, align)  (((x) + ((align) - 1)) & ~((align) - 1))
+#define ALIGN(align)      __attribute__((aligned(align)))
+#define ALIGN_0x20        ALIGN(0x20)
+#define ROUNDUP(x, align) (((x) + ((align) -1)) & ~((align) -1))
 
 int IOSUHAX_Open(const char *dev) {
     if (iosuhaxHandle >= 0)
@@ -77,7 +78,7 @@ int IOSUHAX_Open(const char *dev) {
     iosuhaxHandle = IOS_Open((char *) (dev ? dev : "/dev/iosuhax"), 0);
     if (iosuhaxHandle >= 0 && dev) //make sure device is actually iosuhax
     {
-        ALIGN(0x20) int res[0x20 >> 2];
+        ALIGN_0x20 int res[0x20 >> 2];
         *res = 0;
 
         IOS_Ioctl(iosuhaxHandle, IOCTL_CHECK_IF_IOSUHAX, (void *) 0, 0, res, 4);
@@ -116,9 +117,9 @@ int IOSUHAX_memwrite(uint32_t address, const uint8_t *buffer, uint32_t size) {
     return res;
 }
 
-int IOSUHAX_ODM_GetDiscKey(uint8_t * discKey){
+int IOSUHAX_ODM_GetDiscKey(uint8_t *discKey) {
     int res = -1;
-    if(discKey == NULL){
+    if (discKey == NULL) {
         return -2;
     }
     int odm_handle = IOS_Open("/dev/odm", 1);
@@ -140,7 +141,7 @@ int IOSUHAX_memread(uint32_t address, uint8_t *out_buffer, uint32_t size) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) int io_buf[0x20 >> 2];
+    ALIGN_0x20 int io_buf[0x20 >> 2];
     io_buf[0] = address;
 
     void *tmp_buf = NULL;
@@ -164,7 +165,7 @@ int IOSUHAX_memcpy(uint32_t dst, uint32_t src, uint32_t size) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) uint32_t io_buf[0x20 >> 2];
+    ALIGN_0x20 uint32_t io_buf[0x20 >> 2];
     io_buf[0] = dst;
     io_buf[1] = src;
     io_buf[2] = size;
@@ -176,51 +177,51 @@ int IOSUHAX_kern_write32(uint32_t address, uint32_t value) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) uint32_t io_buf[0x20 >> 2];
+    ALIGN_0x20 uint32_t io_buf[0x20 >> 2];
     io_buf[0] = address;
     io_buf[1] = value;
 
     return IOS_Ioctl(iosuhaxHandle, IOCTL_KERN_WRITE32, io_buf, 2 * sizeof(uint32_t), 0, 0);
 }
 
-int IOSUHAX_read_otp(uint8_t * out_buffer, uint32_t size) {
+int IOSUHAX_read_otp(uint8_t *out_buffer, uint32_t size) {
     if (iosuhaxHandle < 0) {
         return iosuhaxHandle;
     }
 
-    ALIGN(0x20) uint32_t io_buf[0x400 >> 2];
+    ALIGN_0x20 uint32_t io_buf[0x400 >> 2];
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_READ_OTP, 0, 0, io_buf, 0x400);
 
-    if (res >= 0){
+    if (res >= 0) {
         memcpy(out_buffer, io_buf, size > 0x400 ? 0x400 : size);
     }
 
     return res;
 }
 
-extern int bspRead(const char*, uint32_t, const char*, uint32_t, uint16_t*);
+extern int bspRead(const char *, uint32_t, const char *, uint32_t, uint16_t *);
 
-int IOSUHAX_read_seeprom(uint8_t * out_buffer, uint32_t offset, uint32_t size) {
-    if(out_buffer == NULL || offset > 0x200 || offset & 0x01) {
+int IOSUHAX_read_seeprom(uint8_t *out_buffer, uint32_t offset, uint32_t size) {
+    if (out_buffer == NULL || offset > 0x200 || offset & 0x01) {
         return -1;
-    }    
+    }
 
     uint32_t sizeInShorts = size >> 1;
     uint32_t offsetInShorts = offset >> 1;
     int32_t maxReadCount = 0x100 - offsetInShorts;
 
-    if(maxReadCount <= 0){
+    if (maxReadCount <= 0) {
         return 0;
     }
 
     uint32_t count = sizeInShorts > maxReadCount ? maxReadCount : sizeInShorts;
-    uint16_t *ptr = (uint16_t *) out_buffer;  
+    uint16_t *ptr = (uint16_t *) out_buffer;
 
     int res = 0;
 
-    for(int i = 0; i < count; i++) {
-        if(bspRead("EE", offsetInShorts + i, "access", 2, ptr) != 0) {
+    for (int i = 0; i < count; i++) {
+        if (bspRead("EE", offsetInShorts + i, "access", 2, ptr) != 0) {
             return -2;
         }
         res += 2;
@@ -234,7 +235,7 @@ int IOSUHAX_kern_read32(uint32_t address, uint32_t *out_buffer, uint32_t count) 
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) uint32_t io_buf[0x20 >> 2];
+    ALIGN_0x20 uint32_t io_buf[0x20 >> 2];
     io_buf[0] = address;
 
     void *tmp_buf = NULL;
@@ -258,7 +259,7 @@ int IOSUHAX_SVC(uint32_t svc_id, uint32_t *args, uint32_t arg_cnt) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) uint32_t arguments[0x40 >> 2];
+    ALIGN_0x20 uint32_t arguments[0x40 >> 2];
     arguments[0] = svc_id;
 
     if (args && arg_cnt) {
@@ -268,7 +269,7 @@ int IOSUHAX_SVC(uint32_t svc_id, uint32_t *args, uint32_t arg_cnt) {
         memcpy(arguments + 1, args, arg_cnt * 4);
     }
 
-    ALIGN(0x20) int result[0x20 >> 2];
+    ALIGN_0x20 int result[0x20 >> 2];
     int ret = IOS_Ioctl(iosuhaxHandle, IOCTL_SVC, arguments, (1 + arg_cnt) * 4, result, 4);
     if (ret < 0)
         return ret;
@@ -280,7 +281,7 @@ int IOSUHAX_FSA_Open(void) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) int io_buf[0x20 >> 2];
+    ALIGN_0x20 int io_buf[0x20 >> 2];
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_OPEN, 0, 0, io_buf, sizeof(int));
     if (res < 0)
@@ -293,7 +294,7 @@ int IOSUHAX_FSA_Close(int fsaFd) {
     if (iosuhaxHandle < 0)
         return iosuhaxHandle;
 
-    ALIGN(0x20) int io_buf[0x20 >> 2];
+    ALIGN_0x20 int io_buf[0x20 >> 2];
     io_buf[0] = fsaFd;
 
     int res = IOS_Ioctl(iosuhaxHandle, IOCTL_FSA_CLOSE, io_buf, sizeof(fsaFd), io_buf, sizeof(fsaFd));
@@ -311,7 +312,7 @@ int IOSUHAX_FSA_Mount(int fsaFd, const char *device_path, const char *volume_pat
 
     int io_buf_size = (sizeof(uint32_t) * input_cnt) + strlen(device_path) + strlen(volume_path) + arg_string_len + 3;
 
-    ALIGN(0x20) int io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
+    ALIGN_0x20 int io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
     memset(io_buf, 0, io_buf_size);
 
     io_buf[0] = fsaFd;
@@ -342,7 +343,7 @@ int IOSUHAX_FSA_Unmount(int fsaFd, const char *path, uint32_t flags) {
 
     int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(path) + 1;
 
-    ALIGN(0x20) int io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
+    ALIGN_0x20 int io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
 
     io_buf[0] = fsaFd;
     io_buf[1] = sizeof(uint32_t) * input_cnt;
@@ -364,7 +365,7 @@ int IOSUHAX_FSA_FlushVolume(int fsaFd, const char *volume_path) {
 
     int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(volume_path) + 1;
 
-    ALIGN(0x20) int io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
+    ALIGN_0x20 int io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
 
     io_buf[0] = fsaFd;
     io_buf[1] = sizeof(uint32_t) * input_cnt;
@@ -849,7 +850,7 @@ int IOSUHAX_FSA_ChangeMode(int fsaFd, const char *path, int mode) {
 
     int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(path) + 1;
 
-    ALIGN(0x20) uint32_t io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
+    ALIGN_0x20 uint32_t io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
 
     io_buf[0] = fsaFd;
     io_buf[1] = sizeof(uint32_t) * input_cnt;
@@ -871,7 +872,7 @@ int IOSUHAX_FSA_RawOpen(int fsaFd, const char *device_path, int *outHandle) {
 
     int io_buf_size = sizeof(uint32_t) * input_cnt + strlen(device_path) + 1;
 
-    ALIGN(0x20) uint32_t io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
+    ALIGN_0x20 uint32_t io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
 
     io_buf[0] = fsaFd;
     io_buf[1] = sizeof(uint32_t) * input_cnt;
@@ -955,7 +956,7 @@ int IOSUHAX_FSA_RawClose(int fsaFd, int device_handle) {
 
     int io_buf_size = sizeof(uint32_t) * input_cnt;
 
-    ALIGN(0x20) uint32_t io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
+    ALIGN_0x20 uint32_t io_buf[ROUNDUP(io_buf_size, 0x20) >> 2];
 
     io_buf[0] = fsaFd;
     io_buf[1] = device_handle;

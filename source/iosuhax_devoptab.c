@@ -21,18 +21,17 @@
  * 3. This notice may not be removed or altered from any source
  * distribution.
  ***************************************************************************/
+#include "iosuhax.h"
+#include "os_functions.h"
 #include <errno.h>
-#include <sys/iosupport.h>
-#include <sys/statvfs.h>
-#include <sys/dirent.h>
-#include <string.h>
+#include <fcntl.h>
 #include <malloc.h>
 #include <stdint.h>
-#include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/dirent.h>
 #include <sys/iosupport.h>
-#include "os_functions.h"
-#include "iosuhax.h"
+#include <sys/statvfs.h>
 
 typedef struct _fs_dev_private_t {
     char *mount_path;
@@ -43,15 +42,15 @@ typedef struct _fs_dev_private_t {
 
 typedef struct _fs_dev_file_state_t {
     fs_dev_private_t *dev;
-    int fd;                                     /* File descriptor */
-    int flags;                                  /* Opening flags */
-    int read;                                   /* True if allowed to read from file */
-    int write;                                  /* True if allowed to write to file */
-    int append;                                 /* True if allowed to append to file */
-    uint32_t pos;                                    /* Current position within the file (in bytes) */
-    uint32_t len;                                    /* Total length of the file (in bytes) */
-    struct _fs_dev_file_state_t *prevOpenFile;  /* The previous entry in a double-linked FILO list of open files */
-    struct _fs_dev_file_state_t *nextOpenFile;  /* The next entry in a double-linked FILO list of open files */
+    int fd;                                    /* File descriptor */
+    int flags;                                 /* Opening flags */
+    int read;                                  /* True if allowed to read from file */
+    int write;                                 /* True if allowed to write to file */
+    int append;                                /* True if allowed to append to file */
+    uint32_t pos;                              /* Current position within the file (in bytes) */
+    uint32_t len;                              /* Total length of the file (in bytes) */
+    struct _fs_dev_file_state_t *prevOpenFile; /* The previous entry in a double-linked FILO list of open files */
+    struct _fs_dev_file_state_t *nextOpenFile; /* The next entry in a double-linked FILO list of open files */
 } fs_dev_file_state_t;
 
 typedef struct _fs_dev_dir_entry_t {
@@ -537,7 +536,6 @@ static int fs_dev_rename_r(struct _reent *r, const char *oldName, const char *ne
     }
 
     return 0;
-
 }
 
 static int fs_dev_mkdir_r(struct _reent *r, const char *path, int mode) {

@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/dimok789/libiosuhax.svg)](https://travis-ci.org/dimok789/libiosuhax)
+[![Publish Docker Image](https://github.com/wiiu-env/libiosuhax/actions/workflows/push_image.yml/badge.svg)](https://github.com/wiiu-env/libiosuhax/actions/workflows/push_image.yml)
+
 # libiosuhax
 A PPC library to access IOSUHAX from PPC and a devoptab for any device or path. 
 It's only compatible to RPX-Files.

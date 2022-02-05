@@ -10,6 +10,16 @@ Make you to have [wut](https://github.com/devkitPro/wut/) installed and use the 
 make install
 ```
 
+## Use this lib in Dockerfiles.
+A prebuilt version of this lib can found on dockerhub. To use it for your projects, add this to your Dockerfile.
+```
+[...]
+COPY --from=wiiuenv/libiosuhax:[tag] /artifacts $DEVKITPRO
+[...]
+```
+Replace [tag] with a tag you want to use, a list of tags can be found [here](https://hub.docker.com/r/wiiuenv/libiosuhax/tags). 
+It's highly recommended to pin the version to the **latest date** instead of using `latest`.
+
 ## Format the code via docker
 
 `docker run --rm -v ${PWD}:/src wiiuenv/clang-format:13.0.0-2 -r ./source ./include -i`

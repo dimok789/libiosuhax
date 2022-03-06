@@ -29,12 +29,6 @@
 extern "C" {
 #endif
 
-#define IOS_ERROR_UNKNOWN_VALUE 0xFFFFFFD6
-#define IOS_ERROR_INVALID_ARG   0xFFFFFFE3
-#define IOS_ERROR_INVALID_SIZE  0xFFFFFFE9
-#define IOS_ERROR_UNKNOWN       0xFFFFFFF7
-#define IOS_ERROR_NOEXISTS      0xFFFFFFFA
-
 typedef struct {
     uint32_t flag;
     uint32_t permission;

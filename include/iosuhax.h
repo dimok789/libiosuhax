@@ -23,32 +23,17 @@
  ***************************************************************************/
 #pragma once
 
+#include <coreinit/filesystem.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-    uint32_t flag;
-    uint32_t permission;
-    uint32_t owner_id;
-    uint32_t group_id;
-    uint32_t size;     // size in bytes
-    uint32_t physsize; // physical size on disk in bytes
-    uint32_t unk[3];
-    uint32_t id;
-    uint32_t ctime;
-    uint32_t mtime;
-    uint32_t unk2[0x0D];
-} fileStat_s;
-
-typedef struct {
-    fileStat_s stat;
-    char name[0x100];
-} directoryEntry_s;
-
-#define DIR_ENTRY_IS_DIRECTORY   0x80000000
+// Deprecated: Use FS_STAT_DIRECTORY
+#ifndef DIR_ENTRY_IS_DIRECTORY
+#define DIR_ENTRY_IS_DIRECTORY FS_STAT_FILE
+#endif
 
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL    (1 << 1)
@@ -88,7 +73,7 @@ int IOSUHAX_FSA_MakeDir(int fsaFd, const char *path, uint32_t flags);
 
 int IOSUHAX_FSA_OpenDir(int fsaFd, const char *path, int *outHandle);
 
-int IOSUHAX_FSA_ReadDir(int fsaFd, int handle, directoryEntry_s *out_data);
+int IOSUHAX_FSA_ReadDir(int fsaFd, int handle, FSDirectoryEntry *out_data);
 
 int IOSUHAX_FSA_RewindDir(int fsaFd, int dirHandle);
 
@@ -102,13 +87,13 @@ int IOSUHAX_FSA_ReadFile(int fsaFd, void *data, uint32_t size, uint32_t cnt, int
 
 int IOSUHAX_FSA_WriteFile(int fsaFd, const void *data, uint32_t size, uint32_t cnt, int fileHandle, uint32_t flags);
 
-int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, fileStat_s *out_data);
+int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, FSStat *out_data);
 
 int IOSUHAX_FSA_CloseFile(int fsaFd, int fileHandle);
 
 int IOSUHAX_FSA_SetFilePos(int fsaFd, int fileHandle, uint32_t position);
 
-int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, fileStat_s *out_data);
+int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, FSStat *out_data);
 
 int IOSUHAX_FSA_Remove(int fsaFd, const char *path);
 

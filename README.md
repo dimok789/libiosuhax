@@ -9,6 +9,9 @@ Make you to have [wut](https://github.com/devkitPro/wut/) installed and use the 
 ```
 make install
 ```
+Note:
+You might have to build the latest wut from source if you use the prebuild devkitpro packages until it has a new release.
+It won't work with wut versions like wut 1.0.0-beta12 and older.
 
 ## Use this lib in Dockerfiles.
 A prebuilt version of this lib can found on dockerhub. To use it for your projects, add this to your Dockerfile.

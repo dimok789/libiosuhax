@@ -496,6 +496,12 @@ int IOSUHAX_FSA_ReadDir(int fsaFd, int handle, FSDirectoryEntry *out_data) {
 
     int result = *(int *) result_vec;
     memcpy(out_data, result_vec + 4, sizeof(FSDirectoryEntry));
+
+    // Force FS_STAT_FILE when a size is set.
+    if ((out_data->info.flags & FS_STAT_DIRECTORY) != FS_STAT_DIRECTORY && out_data->info.size > 0) {
+        out_data->info.flags |= FS_STAT_FILE;
+    }
+
     free(io_buf);
     free(result_vec);
     return result;
@@ -720,6 +726,11 @@ int IOSUHAX_FSA_StatFile(int fsaFd, int fileHandle, FSStat *out_data) {
     int result = out_buffer[0];
     memcpy(out_data, out_buffer + 1, sizeof(FSStat));
 
+    // Force FS_STAT_FILE when a size is set.
+    if ((out_data->flags & FS_STAT_DIRECTORY) != FS_STAT_DIRECTORY && out_data->size > 0) {
+        out_data->flags |= FS_STAT_FILE;
+    }
+
     free(io_buf);
     free(out_buffer);
     return result;
@@ -812,6 +823,11 @@ int IOSUHAX_FSA_GetStat(int fsaFd, const char *path, FSStat *out_data) {
 
     int result = out_buffer[0];
     memcpy(out_data, out_buffer + 1, sizeof(FSStat));
+
+    // Force FS_STAT_FILE when a size is set.
+    if ((out_data->flags & FS_STAT_DIRECTORY) != FS_STAT_DIRECTORY && out_data->size > 0) {
+        out_data->flags |= FS_STAT_FILE;
+    }
 
     free(io_buf);
     free(out_buffer);

@@ -38,6 +38,11 @@ extern "C" {
 #define FSA_MOUNTFLAGS_BINDMOUNT (1 << 0)
 #define FSA_MOUNTFLAGS_GLOBAL    (1 << 1)
 
+
+int IOSUHAX_UnlockFSClient(FSClient *client);
+
+int IOSUHAX_FSMount(FSClient *client, const char *source, const char *target);
+
 int IOSUHAX_Open(const char *dev); // if dev == NULL the default path /dev/iosuhax will be used
 int IOSUHAX_Close(void);
 

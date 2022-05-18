@@ -71,6 +71,53 @@ static int iosuhaxHandle = -1;
 #define ALIGN_0x20        ALIGN(0x20)
 #define ROUNDUP(x, align) (((x) + ((align) -1)) & ~((align) -1))
 
+static void *fsClientGetBody(FSClient *client) {
+    if (!client) {
+        return 0;
+    }
+
+    void *body = (void *) (ROUNDUP((uint32_t) client, 0x40));
+    return body;
+}
+extern FSClient *__wut_devoptab_fs_client;
+
+int IOSUHAX_UnlockFSClient(FSClient *client) {
+    uint8_t *body = (uint8_t *) fsClientGetBody(client);
+    int handle    = (int) *(uint32_t *) (body + 0x1444);
+
+    ALIGN(0x40)
+    int dummy[0x40 >> 2];
+
+    int32_t iVar2 = IOS_Ioctl(handle, 0x28, dummy, sizeof(dummy), dummy, sizeof(dummy));
+    return iVar2;
+}
+
+typedef struct FSAShimBuffer FSAShimBuffer;
+struct FSAShimBuffer {
+    char u1[0x938];
+};
+
+#define __FSAShimSetupRequestMount ((int (*)(FSAShimBuffer *, uint32_t, const char *, const char *, uint32_t, uint32_t, uint32_t))(0x101C400 + 0x042f88))
+#define __FSAShimSend              ((int (*)(FSAShimBuffer *, uint32_t))(0x101C400 + 0x042d90))
+
+int IOSUHAX_FSMount(FSClient *client, const char *source, const char *target) {
+    FSAShimBuffer *buffer = (FSAShimBuffer *) memalign(0x40, 0x1000);
+    if (!buffer) {
+        return -1;
+    }
+    uint8_t *body = (uint8_t *) fsClientGetBody(client);
+    int handle    = (int) *(uint32_t *) (body + 0x1444);
+
+    int res = __FSAShimSetupRequestMount(buffer, handle, source, target, 0, 0, 0);
+    if (res != 0) {
+        free(buffer);
+        return res;
+    }
+    res = __FSAShimSend(buffer, 0);
+    free(buffer);
+    return res;
+}
+
 int IOSUHAX_Open(const char *dev) {
     if (iosuhaxHandle >= 0)
         return iosuhaxHandle;
